@@ -32,7 +32,10 @@ def get_api_keys(api_keys):
                 ] 
             }
         },
-        "required": ["openai", "discord"]
+        "required": [
+            "openai",
+            "discord"
+        ]
     }
 
     try:

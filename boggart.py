@@ -1,3 +1,4 @@
+import argparse
 import json
 import openai
 # import discord
@@ -7,18 +8,29 @@ from jsonschema import validate, ValidationError
 def get_api_keys(api_keys):
     with open(api_keys, 'r') as keys_file:
         keys = json.load(keys_file)
-
+    
+    # TODO: descriptions
     api_key_schema = {
         "type": "object",
         "properties": {
             "openai": {
-                "type": "string",
-                "description": "OpenAI API Key"
+                "type": "string"
             },
             "discord": {
-                "type": "string",
-                "description": "Discord API Key"
-            },
+                "type": "object",
+                "properties": {
+                    "clientId": {
+                        "type": "string"
+                    },
+                    "clientSecret": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "clientId",
+                    "clientSecret"
+                ] 
+            }
         },
         "required": ["openai", "discord"]
     }
@@ -27,20 +39,32 @@ def get_api_keys(api_keys):
         validate(instance=keys, schema=api_key_schema)
         print("Schema is valid.")
     except ValidationError as e:
-        print("Schema is invalid, check your keys.json file:", e)
-    
+        print("Schema is invalid, check your \"keys.json\" file:", e)
+
+    # TODO: better error handling based on whether or not schema is valid    
     return keys
 
-keys = get_api_keys('keys.json')
-print(keys)
+def main():
+    parser = argparse.ArgumentParser(
+        prog='Boggart',
+        description='An image generation program that will eventually be a discord bot.',
+        epilog='Author: Chandler Berry'
+    )
+    parser.add_argument('-p', '--prompt', type=str, help='Image generation prompt for OpenAI')
+    args = parser.parse_args() 
 
-openai.api_key=(keys["openai"])
+    keys = get_api_keys('keys.json')
+    openai.api_key=(keys["openai"])
 
-response = openai.Image.create(
-    prompt="",
-    n=1,
-    size="1024x1024"
-)
+    response = openai.Image.create(
+        prompt=args.prompt,
+        n=1,
+        size="1024x1024"
+    )
 
-image_url = response['data'][0]['url']
-print(image_url)
+    image_url = response['data'][0]['url']
+    print(image_url)
+    print(response)
+
+if __name__ == main():
+    main()

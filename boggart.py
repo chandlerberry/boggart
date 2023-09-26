@@ -37,7 +37,7 @@ print(keys)
 openai.api_key=(keys["openai"])
 
 response = openai.Image.create(
-    prompt="A 3D render of an ATX gaming computer out in a grassy field on a sunny day, it is liquid-cooled by a Vermont IPA, and the chassis painted with a flannel pattern.",
+    prompt="",
     n=1,
     size="1024x1024"
 )

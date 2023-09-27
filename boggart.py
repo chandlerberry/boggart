@@ -5,42 +5,15 @@ import openai
 
 from jsonschema import validate, ValidationError
 
-def get_api_keys(api_keys):
+def get_api_keys(api_keys, api_key_schema):
     with open(api_keys, 'r') as keys_file:
         keys = json.load(keys_file)
     
-    # TODO: descriptions
-    api_key_schema = {
-        "type": "object",
-        "properties": {
-            "openai": {
-                "type": "string"
-            },
-            "discord": {
-                "type": "object",
-                "properties": {
-                    "clientId": {
-                        "type": "string"
-                    },
-                    "clientSecret": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "clientId",
-                    "clientSecret"
-                ] 
-            }
-        },
-        "required": [
-            "openai",
-            "discord"
-        ]
-    }
+    with open(api_key_schema, 'r') as schema_file:
+        schema  = json.load(schema_file)
 
     try:
-        validate(instance=keys, schema=api_key_schema)
-        print("Schema is valid.")
+        validate(instance=keys, schema=schema)
     except ValidationError as e:
         print("Schema is invalid, check your \"keys.json\" file:", e)
 
@@ -53,10 +26,10 @@ def main():
         description='An image generation program that will eventually be a discord bot.',
         epilog='Author: Chandler Berry'
     )
-    parser.add_argument('-p', '--prompt', type=str, help='Image generation prompt for OpenAI')
+    parser.add_argument('-p', '--prompt', type=str, help='Image generation prompt for OpenAI API')
     args = parser.parse_args() 
 
-    keys = get_api_keys('keys.json')
+    keys = get_api_keys(api_keys='keys.json', api_key_schema='key_schema.json')
     openai.api_key=(keys["openai"])
 
     response = openai.Image.create(
@@ -67,7 +40,6 @@ def main():
 
     image_url = response['data'][0]['url']
     print(image_url)
-    print(response)
 
 if __name__ == main():
     main()

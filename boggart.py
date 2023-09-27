@@ -23,6 +23,7 @@ async def get_api_keys(api_keys, api_key_schema):
 
 async def main():
     get_keys = asyncio.create_task(get_api_keys(api_keys='keys.json', api_key_schema='key_schema.json'))
+    
     parser = argparse.ArgumentParser(
         prog='Boggart',
         description='An image generation program that will eventually be a discord bot.',

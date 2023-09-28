@@ -24,29 +24,26 @@ def get_api_keys(api_keys, api_key_schema):
     return keys
 
 async def generate_img(prompt):
-    response = openai.Image.create(
-        prompt=prompt,
-        n=1,
-        size="1024x1024"
-    )
-    
+    response = openai.Image.create(prompt=prompt, n=1, size='1024x1024')
     return response['data'][0]['url']
 
 @bot.event  
 async def on_ready():
-    print("connected")
+    print("BOGGART CONNECTED")
 
-@bot.command(name='test')
-async def test(ctx):
-    image = asyncio.create_task(generate_img(prompt="prompt goes here"))
-    url = await image
-    await ctx.send(url)
+# TODO: save image to memory and send image to server instead of url
+@bot.event
+async def on_message(message):
+    if message.author == bot.user or str(message.channel) != 'boggart':
+        return
+    print(f"Prompt: \"{message.content}\"")
+    image = await generate_img(prompt=message.content)
+    await message.channel.send(image)
 
 def main():
     keys = get_api_keys(api_keys='keys.json', api_key_schema='key_schema.json')
     openai.api_key=(keys["openai"])
-    
     bot.run(keys["discordBot"])
 
-if __name__ == main():
+if __name__ == "__main__":
     main()

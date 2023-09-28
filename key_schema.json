@@ -4,24 +4,12 @@
         "openai": {
             "type": "string"
         },
-        "discord": {
-            "type": "object",
-            "properties": {
-                "clientId": {
-                    "type": "string"
-                },
-                "clientSecret": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "clientId",
-                "clientSecret"
-            ]
+        "discordBot": {
+            "type": "string"
         }
     },
     "required": [
         "openai",
-        "discord"
+        "discordBot"
     ]
 }

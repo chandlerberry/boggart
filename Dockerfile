@@ -7,4 +7,4 @@ WORKDIR /usr/src/app
 COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD python boggart.py -p "A renaissance portrait of a humanoid pig"
+CMD python boggart.py

@@ -8,7 +8,7 @@ from PIL import Image
 
 bot = commands.Bot(command_prefix="$", intents=discord.Intents.all())
 
-def get_api_keys(api_keys, api_key_schema):
+async def get_api_keys(api_keys, api_key_schema):
     with open(api_keys, 'r') as keys_file:
         keys = json.load(keys_file)
     
@@ -48,7 +48,7 @@ async def on_message(message):
     await message.channel.send(file=image)
     
 async def main():
-    keys = get_api_keys(api_keys='keys.json', api_key_schema='key_schema.json')
+    keys = await get_api_keys(api_keys='keys.json', api_key_schema='key_schema.json')
     openai.api_key=(keys["openai"])
     bot.run(keys["discordBot"])
 

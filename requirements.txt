@@ -1,4 +1,4 @@
 discord.py
 jsonschema
 openai
-pillow
+pendulum

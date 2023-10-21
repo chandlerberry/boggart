@@ -1,7 +1,7 @@
 import aiohttp, io, json
 import discord
 import openai
-# import pendulum <- for better image upload names
+import pendulum
 
 from discord.ext import commands
 from jsonschema import validate, ValidationError
@@ -36,6 +36,7 @@ async def on_ready():
 
 @bot.command()
 async def img(ctx, *, prompt):
+    dt = pendulum.parse(str(pendulum.now()))
     if ctx.message.author == bot.user or str(ctx.message.channel) != 'boggart':
         return
     await ctx.send(f"Generating: \"{prompt}\"")
@@ -43,10 +44,10 @@ async def img(ctx, *, prompt):
     if image is not None:
         pass
     else:
-        await ctx.send(f"Error: Could not get image...")
+        await ctx.send("Error: Could not get image...")
 
-    # TODO: better image upload name
-    await ctx.send(file=discord.File(fp=image, filename='dalle_image.png'))
+    # TODO: some sort of cache that 
+    await ctx.send(file=discord.File(fp=image, filename=f'dalle_{ctx.message.author}_{dt.year}{dt.month}{dt.day}.png'))
 
 def main():
     keys = get_api_keys(api_keys='keys.json', api_key_schema='key_schema.json')

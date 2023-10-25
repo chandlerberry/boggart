@@ -2,3 +2,4 @@ discord.py
 jsonschema
 openai
 pendulum
+transformers[torch]

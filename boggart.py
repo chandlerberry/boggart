@@ -7,7 +7,7 @@ from jsonschema import validate, ValidationError
 from transformers import pipeline
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-summarizer = pipeline('summarization', model='')
+summarizer = pipeline('summarization')
 
 def get_api_keys(api_keys, api_key_schema) -> dict:
     with open(api_keys, 'r') as keys_file:
@@ -24,10 +24,9 @@ def get_api_keys(api_keys, api_key_schema) -> dict:
     return keys
 
 async def get_image(prompt):
-    image_request = asyncio.to_thread(openai.Image.create(prompt=prompt, n=1, size='1024x1024'))
+    result = openai.Image.create(prompt=prompt, n=1, size='1024x1024')
 
     try:
-        result = await image_request
         image_url = str(result['data'][0]['url'])
     except openai.error.InvalidRequestError as e:    
         return e
@@ -46,7 +45,7 @@ async def on_ready():
 async def img(ctx, *, prompt):
     if str(ctx.message.channel) != 'boggart':
         return
-    prompt_summary = asyncio.to_thread(summarizer(prompt, max_length=1, min_length=1, do_sample=False))
+    prompt_summary = asyncio.to_thread(summarizer(prompt, max_length=2, min_length=1, do_sample=False))
     generate = asyncio.create_task(get_image(prompt))
     await ctx.send(f"Generating: \"{prompt}\"")
 
@@ -55,15 +54,16 @@ async def img(ctx, *, prompt):
         if "safety system" in image:
             await ctx.send(f"\"{prompt}\" has been determined to be too based for the OpenAI safety system.")
     elif isinstance(image, io.BytesIO):
-        print(f"Summary: {await prompt_summary[0]['summary_text']}")
+        summary = await prompt_summary
+        try:
+            print(f"Summary: {str(summary[0]['summary_text'])}")
+        except:
+            print("\nsummary's broke, fix\n\n")
         await ctx.send(file=discord.File(fp=image, filename=f'dalle.png'))
     else:
         await(ctx.send(f"idk what this is, image request returned type: {type(image)}"))
 
-def main():
+if __name__ == "__main__":
     keys = get_api_keys(api_keys='keys.json', api_key_schema='key_schema.json')
     openai.api_key=(keys['openai'])
     bot.run(keys['discordBot'])
-
-if __name__ == "__main__":
-    main()

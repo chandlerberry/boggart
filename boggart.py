@@ -9,6 +9,10 @@ from transformers import pipeline
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 summarizer = pipeline('summarization')
 
+@bot.event  
+async def on_ready():
+    print("\nBOGGART CONNECTED\n")
+
 def get_api_keys(api_keys, api_key_schema) -> dict:
     with open(api_keys, 'r') as keys_file:
         keys = json.load(keys_file)
@@ -22,6 +26,10 @@ def get_api_keys(api_keys, api_key_schema) -> dict:
         print("Schema is invalid, check your \"keys.json\" file:", e)
 
     return keys
+
+def summarize_prompt(prompt) -> str:
+    summary = summarizer(prompt, max_length=2, min_length=1, do_sample=False)
+    return summary[0]['text_summary']
 
 async def get_image(prompt):
     result = openai.Image.create(prompt=prompt, n=1, size='1024x1024')
@@ -37,29 +45,29 @@ async def get_image(prompt):
                 return None
             return io.BytesIO(await get.read())
 
-@bot.event  
-async def on_ready():
-    print("\nBOGGART CONNECTED\n")
-
 @bot.command()
 async def img(ctx, *, prompt):
     if str(ctx.message.channel) != 'boggart':
         return
-    prompt_summary = asyncio.to_thread(summarizer(prompt, max_length=2, min_length=1, do_sample=False))
-    generate = asyncio.create_task(get_image(prompt))
     await ctx.send(f"Generating: \"{prompt}\"")
+    summary_thread = asyncio.to_thread(summarize_prompt(prompt))
+    image_task = asyncio.create_task(get_image(prompt))
 
-    image = await generate
+    image, summary = await asyncio.gather(
+        image_task,
+        summary_thread
+    )
+
     if isinstance(image, str):
         if "safety system" in image:
             await ctx.send(f"\"{prompt}\" has been determined to be too based for the OpenAI safety system.")
     elif isinstance(image, io.BytesIO):
-        summary = await prompt_summary
         try:
-            print(f"Summary: {str(summary[0]['summary_text'])}")
+            print(f"Summary: {summary}")
+            await ctx.send(file=discord.File(fp=image, filename=f'dalle.png'))
         except:
             print("\nsummary's broke, fix\n\n")
-        await ctx.send(file=discord.File(fp=image, filename=f'dalle.png'))
+            await ctx.send("Chandler is big dumb dumb and bad at programming")
     else:
         await(ctx.send(f"idk what this is, image request returned type: {type(image)}"))
 

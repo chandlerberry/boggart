@@ -1,4 +1,3 @@
 discord.py
 jsonschema
 openai
-transformers[torch]

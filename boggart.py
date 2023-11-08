@@ -4,10 +4,10 @@ import openai
 
 from discord.ext import commands
 from jsonschema import validate, ValidationError
-from transformers import pipeline
+# from transformers import pipeline
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-summarizer = pipeline('summarization')
+# summarizer = pipeline('summarization')
 
 @bot.event  
 async def on_ready():
@@ -27,12 +27,12 @@ def get_api_keys(api_keys, api_key_schema) -> dict:
 
     return keys
 
-def summarize_prompt(prompt) -> str:
-    summary = summarizer(prompt, max_length=2, min_length=1, do_sample=False)
-    return summary[0]['text_summary']
+# def summarize_prompt(prompt) -> str:
+    # summary = summarizer(prompt, max_length=2, min_length=1, do_sample=False)
+    # return summary[0]['text_summary']
 
 async def get_image(prompt):
-    result = openai.Image.create(prompt=prompt, n=1, size='1024x1024')
+    result = openai.Image.create(model="dalle-3", prompt=prompt, n=1, size='1024x1024')
 
     try:
         image_url = str(result['data'][0]['url'])
@@ -50,12 +50,12 @@ async def img(ctx, *, prompt):
     if str(ctx.message.channel) != 'boggart':
         return
     await ctx.send(f"Generating: \"{prompt}\"")
-    summary_thread = asyncio.to_thread(summarize_prompt(prompt))
+    # summary_thread = asyncio.to_thread(summarize_prompt(prompt))
     image_task = asyncio.create_task(get_image(prompt))
 
     image, summary = await asyncio.gather(
         image_task,
-        summary_thread
+        # summary_thread
     )
 
     if isinstance(image, str):

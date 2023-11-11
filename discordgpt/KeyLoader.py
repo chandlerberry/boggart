@@ -1,12 +1,12 @@
 import json
 from jsonschema import validate, ValidationError
 
-class ApiKeyLoader:
-
-    def __init__(self, keys_file, keys_schema_file):
+class KeyLoader:
+    def __init__(self, keys_file):
+        self.schema_path = '/usr/src/app/discordgpt/config/schema.json'
         with open(keys_file, 'r') as file:
             load_keys = json.load(file)
-        with open(keys_schema_file, 'r') as schema_file:
+        with open(self.schema_path, 'r') as schema_file:
             load_keys_schema = json.load(schema_file)
         try:
             validate(instance=load_keys, schema=load_keys_schema)

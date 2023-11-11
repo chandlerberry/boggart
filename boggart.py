@@ -1,14 +1,20 @@
+import asyncio
 import discord
+from discordgpt import KeyLoader, ImageGenerator
 from discord.ext import commands
-from access import ApiKeyLoader
-from discordgpt import ImageGenerator
 
-keys = ApiKeyLoader('keys.json', 'schema.json')
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
-@bot.event  
+@bot.event
 async def on_ready():
     print("\nBOGGART CONNECTED\n")
 
-bot.run(keys.discord)
-bot.add_cog(ImageGenerator(bot))
+async def main():
+    keys = KeyLoader('keys.json')
+    bot.start(keys.discordBot)
+    bot.add_cog(ImageGenerator(bot,
+                               api_key=keys.openai,
+                               model='dall-e-3',
+                               resolution='1024x1024'))
+
+asyncio.run(main())

@@ -1,20 +1,21 @@
 import asyncio
 import discord
-from discordgpt import KeyLoader, ImageGenerator
+import os
+from discordgpt import KeyLoader
 from discord.ext import commands
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
+async def load_cogs():
+    await bot.load_extension('discordgpt.ImageGenerator')
+
 @bot.event
 async def on_ready():
-    print("\nBOGGART CONNECTED\n")
+    print("\nBoggart Connected\n")
 
 async def main():
     keys = KeyLoader('keys.json')
-    bot.start(keys.discordBot)
-    bot.add_cog(ImageGenerator(bot,
-                               api_key=keys.openai,
-                               model='dall-e-3',
-                               resolution='1024x1024'))
+    await load_cogs()
+    await bot.start(keys.discordBot)
 
 asyncio.run(main())

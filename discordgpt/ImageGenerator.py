@@ -25,8 +25,7 @@ class ImageGenerator(commands.Cog):
             size=image_size,
             quality=image_quality,
         )
-        print(f"\n{result.data[0].revised_prompt}\n")
-        return result.data[0].url
+        return result
             
     @commands.Cog.listener()
     async def on_ready(self):
@@ -38,14 +37,14 @@ class ImageGenerator(commands.Cog):
             return
         await ctx.send(f"Generating: \"{prompt}\"")
         try:
-            image_url = await self.generate_image(prompt, '1024x1024', 'standard')
+            image_result = await self.generate_image(prompt, '1024x1024', 'standard')
         except Exception as e:
             await ctx.send(f"Error generating image: {e}")
             return
         
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(image_url) as response:
+                async with session.get(image_result.data[0].url) as response:
                     if response.status != 200:
                         await ctx.send("Failed to download the image.")
                         return
@@ -54,7 +53,7 @@ class ImageGenerator(commands.Cog):
                     image = io.BytesIO(image_data)
                     filename = f"{ctx.message.author.display_name}.png"
 
-                    await ctx.send(file=discord.File(fp=image, filename=filename))
+                    await ctx.send(image_result.data[0].revised_prompt, file=discord.File(fp=image, filename=filename))
 
         except Exception as e:
             await ctx.send(f"Error sending image: {e}")
@@ -66,14 +65,15 @@ class ImageGenerator(commands.Cog):
             return
         await ctx.send(f"Generating HD Image: \"{prompt}\"")
         try:
-            image_url = await self.generate_image(prompt, '1792x1024', 'hd')
+            image_result = await self.generate_image(prompt, '1792x1024', 'hd')
+
         except Exception as e:
             await ctx.send(f"Error generating image: {e}")
             return
         
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(image_url) as response:
+                async with session.get(image_result.data[0].url) as response:
                     if response.status != 200:
                         await ctx.send("Failed to download the image.")
                         return
@@ -82,7 +82,7 @@ class ImageGenerator(commands.Cog):
                     image = io.BytesIO(image_data)
                     filename = f"{ctx.message.author.display_name}.png"
 
-                    await ctx.send(file=discord.File(fp=image, filename=filename))
+                    await ctx.send(image_result.data[0].revised_prompt, file=discord.File(fp=image, filename=filename))
 
         except Exception as e:
             await ctx.send(f"Error sending image: {e}")

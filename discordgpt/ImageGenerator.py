@@ -19,7 +19,6 @@ class ImageGenerator(commands.Cog):
         client = OpenAI(
             api_key=str(keys.openai)
         )
-        print('sending request')
         result = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
@@ -27,7 +26,7 @@ class ImageGenerator(commands.Cog):
             size="1024x1024",
             quality="standard",
         )
-        print('we are here')
+        print(f"\n{result.data[0].revised_prompt}\n")
         return result.data[0].url
             
     @commands.Cog.listener()

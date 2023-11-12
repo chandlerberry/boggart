@@ -1,6 +1,5 @@
 import asyncio
 import discord
-import os
 from discordgpt import KeyLoader
 from discord.ext import commands
 

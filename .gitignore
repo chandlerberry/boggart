@@ -3,3 +3,5 @@ __pycache__
 keys.json
 logs
 cmd.txt
+pat.yaml
+schema.json

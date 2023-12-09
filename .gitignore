@@ -1,6 +1,7 @@
 __pycache__
 .env/
 keys.json
+keys.yaml
 logs
 cmd.txt
 pat.yaml

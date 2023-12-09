@@ -2,20 +2,18 @@ import aiohttp
 import boto3
 import discord
 import io
-from KeyLoader import KeyLoader
 from discord.ext import commands
 from openai import OpenAI
 
 class ImageGenerator(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.keys = KeyLoader('keys.yaml', 'schema.json')
 
     async def generate_image(self, **kwargs: str):
         prompt = kwargs.get('prompt')
         image_size = kwargs.get('image_size')
         image_quality = kwargs.get('image_quality')
-        client = OpenAI(self.openai_key)
+        client = OpenAI()
         result = client.images.generate(model=self.dalle_model,
                                         prompt=prompt,
                                         n=1, size=image_size,

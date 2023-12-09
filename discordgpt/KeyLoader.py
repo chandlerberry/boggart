@@ -1,13 +1,14 @@
 import json
+import yaml
 from jsonschema import validate, ValidationError
 
 class KeyLoader:
-    def __init__(self, keys_file):
-        self.schema_path = '/usr/src/app/discordgpt/config/schema.json'
+    def __init__(self, keys_file: str, schema_file: str):
         with open(keys_file, 'r') as file:
-            load_keys = json.load(file)
-        with open(self.schema_path, 'r') as schema_file:
-            load_keys_schema = json.load(schema_file)
+            if file.endswith(".json"):
+                load_keys = yaml.load(file)
+        with open(schema_file, 'r') as schema:
+            load_keys_schema = json.load(schema)
         try:
             validate(instance=load_keys, schema=load_keys_schema)
             for service, key in load_keys.items():

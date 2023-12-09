@@ -1,4 +1,5 @@
 import yaml
+import logging
 from logging.config import dictConfig
 
 class BotLogger:

@@ -4,6 +4,7 @@ import boto3
 import discord
 import io
 import uuid
+from Database import ImageDatabase
 from discord.ext import commands
 from openai import OpenAI
 from botocore.exceptions import NoCredentialsError
@@ -14,7 +15,7 @@ class ImageGenerator(commands.Cog):
     """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.db = Database(pg_username='postgres',
+        self.db = ImageDatabase(pg_username='postgres',
             pg_password='chandlerb',
             pg_db='postgres',
             host='127.0.0.1:5432')
@@ -126,30 +127,46 @@ class ImageGenerator(commands.Cog):
     @commands.command()
     async def img_hd(self, ctx, *, prompt):
         """
-        Chat command for user to generate a 1792x1024 image using DALLE 3 HD
+        Chat command for user to generate a 1792x1024 image using DALLE 3 HD.
         """
         if str(ctx.message.channel) != 'boggart':
             return
-
+        
+        filename = f"{uuid.uuid1().hex}_hd.png"
+        
         # TODO: log that image request was recieved by 'x' user
 
         try:
             image_result = await self.generate_image(prompt=str(prompt),
                                                      image_size='1792x1024',
                                                      image_quality='hd')
-
         except Exception as e:
             await ctx.send(f"Error generating image: {e}")
             return
+        
+        try:
+            image = await self.download_image(ctx, image_result.data[0].url)
+        except Exception as e:
+            await ctx.send(f"Error downloading image: {e}")
+            return
 
         try:
-            filename = f"{ctx.message.author.display_name}.png"
-            image = await self.download_image(ctx, image_result.data[0].url)
-            await ctx.send(image_result.data[0].revised_prompt,
-                           file=discord.File(fp=image, filename=filename))
-
+            async with asyncio.TaskGroup() as upload:
+                # send to discord chat
+                upload.create_task(ctx.send(image_result.data[0].revised_prompt,
+                                            file=discord.File(fp=image, filename=filename)))
+                # upload to backblaze
+                upload.create_task(self.upload_generated_image(image_data=image,
+                                                               b2_filename=filename,
+                                                               bucket_name='boggart'))
+                # store reference to file in database
+                upload.create_task(self.db.store_generated_image(b2_filename=filename,
+                                                                 username=ctx.message.author.display_name,
+                                                                 prompt=prompt,
+                                                                 caption=image_result.data[0].revised_prompt))
         except Exception as e:
-            await ctx.send(f"Error sending image: {e}")
+            await ctx.send(f"Error sending/storing image: {e}")
+            return
 
 async def setup(bot):
     await bot.add_cog(ImageGenerator(bot))

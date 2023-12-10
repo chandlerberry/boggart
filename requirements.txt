@@ -3,3 +3,4 @@ discord.py
 jsonschema
 openai
 pyyaml
+asyncpg

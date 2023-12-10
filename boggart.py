@@ -15,9 +15,10 @@ async def on_ready():
     print("\nBoggart Connected\n")
 
 async def main():
-    keys = KeyLoader(keys_file="keys.yaml",schema_file="schema.json")
-    os.environ.update(keys["backblaze"])
+    keys = KeyLoader(keys_file="/config/keys.yaml", schema_file="/config/schema.json")
+    os.environ["OPENAI_API_KEY"] = keys.openai
+    os.environ.update(keys.backblaze)
     await load_cogs()
-    await bot.start(keys.discordBot)
+    await bot.start(keys.discord)
 
 asyncio.run(main())

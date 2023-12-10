@@ -1,6 +1,7 @@
 import asyncio
 import discord
 import os
+import uuid
 from discordgpt import KeyLoader
 from discord.ext import commands
 
@@ -15,9 +16,14 @@ async def on_ready():
     print("\nBoggart Connected\n")
 
 async def main():
-    keys = KeyLoader(keys_file="/config/keys.yaml", schema_file="/config/schema.json")
+    keys = KeyLoader(keys_file='/config/keys.yaml',
+                     schema_file='/config/schema.json')
+    
     os.environ["OPENAI_API_KEY"] = keys.openai
-    os.environ.update(keys.backblaze)
+    os.environ["AWS_ENDPOINT_URL"] = keys.backblaze["endpoint_url"]
+    os.environ["AWS_ACCESS_KEY_ID"] = keys.backblaze["application_key_id"]
+    os.environ["AWS_SECRET_ACCESS_KEY"] = keys.backblaze["application_key"]
+
     await load_cogs()
     await bot.start(keys.discord)
 

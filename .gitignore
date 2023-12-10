@@ -6,4 +6,4 @@ logs
 cmd.txt
 pat.yaml
 schema.json
-create_db.py
+test/*

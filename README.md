@@ -4,7 +4,7 @@ A Discord Bot that utilizes OpenAI's API for Image Generation and (soon) Chat Co
 ## Roadmap
 ### 2023
 - Logger configured for container logs
-- SQL Database from 
+- SQL Database
 ### 2024
 - Evaluate other options for providing image generation/llm services
 - Conversational features like responding to reactions to generated images

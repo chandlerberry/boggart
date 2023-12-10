@@ -3,16 +3,21 @@ import asyncio
 import boto3
 import discord
 import io
+import uuid
 from discord.ext import commands
 from openai import OpenAI
+from botocore.exceptions import NoCredentialsError
 
 class ImageGenerator(commands.Cog):
+    """
+    Discord.py Cog for generating images using OpenAI DALLE
+    """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        # self.db = Database(pg_username='postgres',
-        #                    pg_password='chandlerb',
-        #                    pg_db='postgres',
-        #                    host='127.0.0.1:5432')
+        self.db = Database(pg_username='postgres',
+            pg_password='chandlerb',
+            pg_db='postgres',
+            host='127.0.0.1:5432')
 
     async def generate_image(self, **kwargs: str):
         """
@@ -45,8 +50,8 @@ class ImageGenerator(commands.Cog):
                 image_data = await response.read()
                 return io.BytesIO(image_data)
     
-    # considering **kwargs
-    def upload_generated_image(self, image_data: io.BytesIO, image_name: str, bucket_name: str) -> str:
+    # considering using **kwargs here
+    async def upload_generated_image(self, image_data: io.BytesIO, b2_filename: str, bucket_name: str) -> bool:
         """
         Upload generated image to object storage using the `boto3` AWS API.
         
@@ -55,55 +60,78 @@ class ImageGenerator(commands.Cog):
         - `image_name`: Filename of the uploaded image
         - `bucket_name`: Name of storage bucket being 
         """
-        b2_client = boto3.client('s3')
-        b2_client.put_object(Bucket=bucket_name,
-                             Key=image_name,
-                             Body=image_data)
-        
-        # store_image = asyncio.create_task(self.db.store_generated_image())
-        # get b2 bucket link for uploaded object
-        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#s3
-        # store reference to image in sql database: username, time of day, the prompt, caption (revised prompt), b2 bucket link to photo
+        image_data.seek(0)
+        try:
+            b2 = boto3.client('s3')
+            b2.put_object(Bucket=bucket_name,
+                        Key=b2_filename,
+                        Body=image_data)
+            return True
+
+        except NoCredentialsError as e:
+            print("Credentials not available")
+            return False
             
     @commands.Cog.listener()
     async def on_ready(self):
+        """
+        Logs that the ImageGenerator "Cog" is Online
+        """
         print("DiscordGPT Image Generator Ready\n")
 
     @commands.command()
     async def img(self, ctx, *, prompt):
         """
-        Generate a 1024x1024 image using DALLE 3 Standard
+        Chat command for user to generate a 1024x1024 image using DALLE 3 Standard.
         """
         if str(ctx.message.channel) != 'boggart':
             return
-        await ctx.send(f"Generating: \"{prompt}\"")
+        
+        filename = f"{uuid.uuid1().hex}.png"
+        
+        # TODO: log that image request was recieved by 'x' user
 
         try:
             image_result = await self.generate_image(prompt=str(prompt),
                                                      image_size='1024x1024',
                                                      image_quality='standard')
-
         except Exception as e:
             await ctx.send(f"Error generating image: {e}")
             return
         
         try:
             image = await self.download_image(ctx, image_result.data[0].url)
-            filename = f"{ctx.message.author.display_name}.png"
-            await ctx.send(image_result.data[0].revised_prompt,
-                           file=discord.File(fp=image, filename=filename))
-            
         except Exception as e:
-            await ctx.send(f"Error sending image: {e}")
+            await ctx.send(f"Error downloading image: {e}")
+            return
+
+        try:
+            async with asyncio.TaskGroup() as upload:
+                # send to discord chat
+                upload.create_task(ctx.send(image_result.data[0].revised_prompt,
+                                            file=discord.File(fp=image, filename=filename)))
+                # upload to backblaze
+                upload.create_task(self.upload_generated_image(image_data=image,
+                                                               b2_filename=filename,
+                                                               bucket_name='boggart'))
+                # store reference to file in database
+                upload.create_task(self.db.store_generated_image(b2_filename=filename,
+                                                                 username=ctx.message.author.display_name,
+                                                                 prompt=prompt,
+                                                                 caption=image_result.data[0].revised_prompt))
+        except Exception as e:
+            await ctx.send(f"Error sending/storing image: {e}")
+            return
 
     @commands.command()
     async def img_hd(self, ctx, *, prompt):
         """
-        Generate 1792x1024 image using DALLE 3 HD
+        Chat command for user to generate a 1792x1024 image using DALLE 3 HD
         """
         if str(ctx.message.channel) != 'boggart':
             return
-        await ctx.send(f"Generating HD Image: \"{prompt}\"")
+
+        # TODO: log that image request was recieved by 'x' user
 
         try:
             image_result = await self.generate_image(prompt=str(prompt),

@@ -1,3 +1,3 @@
 from .ImageGenerator import ImageGenerator
 from .KeyLoader import KeyLoader
-from .Database import Database
+from .Database import ImageDatabase

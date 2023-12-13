@@ -4,7 +4,6 @@ import boto3
 import discord
 import io
 import uuid
-from Database import ImageDatabase
 from discord.ext import commands
 from openai import OpenAI
 from botocore.exceptions import NoCredentialsError
@@ -15,6 +14,9 @@ class ImageGenerator(commands.Cog):
     """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
+        # I dislike "Cogs", requires lazy import here to avoid dependency loops. If I were able to instantiate this class by simply importing it, I would be able to use dependency injection to handle this...
+        from Database import ImageDatabase
         self.db = ImageDatabase(pg_username='postgres',
             pg_password='chandlerb',
             pg_db='postgres',
@@ -50,9 +52,16 @@ class ImageGenerator(commands.Cog):
                     return
                 image_data = await response.read()
                 return io.BytesIO(image_data)
+            
+    async def send_image(self, ctx, lock: asyncio.Lock, image_data: io.BytesIO, filename: str, caption: str):
+        """
+        Send Image to Discord chat
+        """
+        async with lock:
+            await ctx.send(caption, file=discord.File(fp=image_data, filename=filename))
     
     # considering using **kwargs here
-    async def upload_generated_image(self, image_data: io.BytesIO, b2_filename: str, bucket_name: str) -> bool:
+    async def upload_generated_image(self, lock: asyncio.Lock, image_data: io.BytesIO, b2_filename: str, bucket_name='boggart') -> bool:
         """
         Upload generated image to object storage using the `boto3` AWS API.
         
@@ -61,17 +70,18 @@ class ImageGenerator(commands.Cog):
         - `image_name`: Filename of the uploaded image
         - `bucket_name`: Name of storage bucket being 
         """
-        image_data.seek(0)
-        try:
-            b2 = boto3.client('s3')
-            b2.put_object(Bucket=bucket_name,
-                        Key=b2_filename,
-                        Body=image_data)
-            return True
+        async with lock:
+            image_data.seek(0)
+            try:
+                b2 = boto3.client('s3')
+                b2.put_object(Bucket=bucket_name,
+                            Key=b2_filename,
+                            Body=image_data)
+                return True
 
-        except NoCredentialsError as e:
-            print("Credentials not available")
-            return False
+            except NoCredentialsError as e:
+                print("Credentials not available")
+                return False
             
     @commands.Cog.listener()
     async def on_ready(self):
@@ -96,23 +106,31 @@ class ImageGenerator(commands.Cog):
             image_result = await self.generate_image(prompt=str(prompt),
                                                      image_size='1024x1024',
                                                      image_quality='standard')
+            
         except Exception as e:
             await ctx.send(f"Error generating image: {e}")
             return
         
         try:
             image = await self.download_image(ctx, image_result.data[0].url)
+
         except Exception as e:
             await ctx.send(f"Error downloading image: {e}")
             return
+        
+        lock = asyncio.Lock()
 
         try:
             async with asyncio.TaskGroup() as upload:
                 # send to discord chat
-                upload.create_task(ctx.send(image_result.data[0].revised_prompt,
-                                            file=discord.File(fp=image, filename=filename)))
+                upload.create_task(self.send_image(ctx,
+                                                   lock,
+                                                   image_data=image,
+                                                   filename=filename,
+                                                   caption=image_result.data[0].revised_prompt))
                 # upload to backblaze
-                upload.create_task(self.upload_generated_image(image_data=image,
+                upload.create_task(self.upload_generated_image(lock,
+                                                               image_data=image,
                                                                b2_filename=filename,
                                                                bucket_name='boggart'))
                 # store reference to file in database
@@ -120,6 +138,7 @@ class ImageGenerator(commands.Cog):
                                                                  username=ctx.message.author.display_name,
                                                                  prompt=prompt,
                                                                  caption=image_result.data[0].revised_prompt))
+                
         except Exception as e:
             await ctx.send(f"Error sending/storing image: {e}")
             return
@@ -140,23 +159,31 @@ class ImageGenerator(commands.Cog):
             image_result = await self.generate_image(prompt=str(prompt),
                                                      image_size='1792x1024',
                                                      image_quality='hd')
+            
         except Exception as e:
             await ctx.send(f"Error generating image: {e}")
             return
         
         try:
             image = await self.download_image(ctx, image_result.data[0].url)
+    
         except Exception as e:
             await ctx.send(f"Error downloading image: {e}")
             return
 
+        lock = asyncio.Lock()
+
         try:
             async with asyncio.TaskGroup() as upload:
                 # send to discord chat
-                upload.create_task(ctx.send(image_result.data[0].revised_prompt,
-                                            file=discord.File(fp=image, filename=filename)))
+                upload.create_task(self.send_image(ctx,
+                                                   lock,
+                                                   image_data=image,
+                                                   filename=filename,
+                                                   caption=image_result.data[0].revised_prompt))
                 # upload to backblaze
-                upload.create_task(self.upload_generated_image(image_data=image,
+                upload.create_task(self.upload_generated_image(lock,
+                                                               image_data=image,
                                                                b2_filename=filename,
                                                                bucket_name='boggart'))
                 # store reference to file in database
@@ -164,9 +191,13 @@ class ImageGenerator(commands.Cog):
                                                                  username=ctx.message.author.display_name,
                                                                  prompt=prompt,
                                                                  caption=image_result.data[0].revised_prompt))
+                
         except Exception as e:
             await ctx.send(f"Error sending/storing image: {e}")
             return
 
 async def setup(bot):
+    """
+    Required to load the image generator cog when the service starts
+    """
     await bot.add_cog(ImageGenerator(bot))

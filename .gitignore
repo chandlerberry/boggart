@@ -6,4 +6,4 @@ logs
 cmd.txt
 pat.yaml
 schema.json
-test/*
+test*

@@ -1,6 +1,0 @@
-boto3
-discord.py
-jsonschema
-openai
-pyyaml
-asyncpg

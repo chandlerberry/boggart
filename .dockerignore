@@ -1,9 +1,0 @@
-__pycache__
-.env/
-keys.json
-logs/*
-cmd.txt
-.git
-.gitignore
-Dockerfile
-create_db.py

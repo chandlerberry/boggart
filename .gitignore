@@ -1,9 +1,5 @@
 __pycache__
 .env/
-keys.json
-keys.yaml
-logs
 cmd.txt
-pat.yaml
-schema.json
 test*
+app/config/*

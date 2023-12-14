@@ -1,10 +1,5 @@
 __pycache__
 discordgpt/__pycache__
-.env/
-keys.json
 logs/*
-cmd.txt
-.git
-.gitignore
 Dockerfile
 test*

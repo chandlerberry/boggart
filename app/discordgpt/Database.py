@@ -96,7 +96,7 @@ class ImageDatabase:
                                      port=self.pg_port)
         
         data = await conn.fetch('''
-            SELECT U.Username, G.ImageLink, G.TimeCreated, G.Caption
+            SELECT U.Username, G.ImageLink, G.TimeCreated, G.Caption, G.Prompt
             FROM GeneratedImages G
             INNER JOIN Users U on G.UserID = U.UserID
             WHERE U.Username = $1''', username)

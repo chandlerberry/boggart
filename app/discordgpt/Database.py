@@ -9,6 +9,7 @@ class ImageDatabase:
         self.pg_password = kwargs.get("pg_password")
         self.pg_database = kwargs.get("pg_db")
         self.pg_host = kwargs.get("pg_host")
+        self.pg_port = kwargs.get("pg_port")
 
     async def create_user(self, username: str):
         """
@@ -17,7 +18,8 @@ class ImageDatabase:
         conn = await asyncpg.connect(user=self.pg_username,
                                      password=self.pg_password,
                                      database=self.pg_database,
-                                     host=self.pg_host)
+                                     host=self.pg_host,
+                                     port=self.pg_port)
         
         await conn.execute('''
             INSERT INTO Users (Username)
@@ -32,7 +34,8 @@ class ImageDatabase:
         conn = await asyncpg.connect(user=self.pg_username,
                                      password=self.pg_password,
                                      database=self.pg_database,
-                                     host=self.pg_host)
+                                     host=self.pg_host,
+                                     port=self.pg_port)
         
         username_from_db = await conn.fetchval('SELECT UserID FROM Users WHERE Username = $1', username)
 
@@ -53,7 +56,8 @@ class ImageDatabase:
         conn = await asyncpg.connect(user=self.pg_username,
                                      password=self.pg_password,
                                      database=self.pg_database,
-                                     host=self.pg_host)
+                                     host=self.pg_host,
+                                     port=self.pg_port)
             
         data = await conn.fetch('SELECT * FROM Users')
 
@@ -69,14 +73,14 @@ class ImageDatabase:
         conn = await asyncpg.connect(user=self.pg_username,
                                      password=self.pg_password,
                                      database=self.pg_database,
-                                     host=self.pg_host)
+                                     host=self.pg_host,
+                                     port=self.pg_port)
         
         data = await conn.fetch('SELECT * FROM GeneratedImages')
 
-        for r in data:
-            print(f"UserID: {r['userid']} - Image Link: {r['imagelink']}\nTime Created: {r['timecreated']}\nPrompt: {r['prompt']}\nCaption {r['caption']}\n")
-
         await conn.close()
+        
+        return data
 
     async def get_all_user_images(self, username:str):
         """
@@ -88,7 +92,8 @@ class ImageDatabase:
         conn = await asyncpg.connect(user=self.pg_username,
                                      password=self.pg_password,
                                      database=self.pg_database,
-                                     host=self.pg_host)
+                                     host=self.pg_host,
+                                     port=self.pg_port)
         
         data = await conn.fetch('''
             SELECT U.Username, G.ImageLink, G.TimeCreated, G.Caption

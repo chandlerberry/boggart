@@ -16,16 +16,16 @@ class ImageGenerator(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-        # I dislike "Cogs", requires lazy import here to avoid dependency loops. If I were able to instantiate this class by simply importing it in 'boggart.py' I would be using dependency injection
         from .Database import ImageDatabase
         self.db = ImageDatabase(pg_username='postgres',
                                 pg_password='chandlerb',
                                 pg_db='postgres',
-                                host='127.0.0.1:5432')
+                                pg_host='localhost',
+                                pg_port='5432')
 
     async def generate_image(self, **kwargs: str):
         """
-        Generates an image result from the provided prompt using the OpenAI API `client.images.generate()`.
+        Generates an image result from the provided prompt using the OpenAI API `client.images.generate()`
         """
         prompt = kwargs.get('prompt')
         image_size = kwargs.get('image_size')

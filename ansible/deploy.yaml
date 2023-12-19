@@ -1,0 +1,61 @@
+---
+- name: Deploy Boggart
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  tasks:
+    - name: Login to GitHub Container Registry
+      containers.podman.podman_login:
+        username: "{{ github.username }}"
+        password: "{{ github.personal_access_token }}"
+        registry: "{{ podman.registry }}"
+
+    - name: Pull Application Image
+      containers.podman.podman_image:
+        name: "{{ boggart.container_image }}"
+        tag: "{{ boggart.container_tag }}"
+        state: present
+
+    - name: Pull Database Image
+      containers.podman.podman_image:
+        name: "{{ database.container_image }}"
+        tag: "{{ database.container_tag }}"
+        state: present
+
+    - name: Create Pod
+      containers.podman.podman_pod:
+        name: "{{ podman.pod_name }}"
+        state: created
+        ports:
+          - "5432:5432"
+
+    - name: Create Python Application Container
+      containers.podman.podman_container:
+        name: app-boggart
+        pod: "{{ podman.pod_name }}"
+        image: "{{ boggart.container_image }}:{{ boggart.container_tag }}"
+        state: created
+        volume:
+          - "{{ boggart.config_mount }}"
+        env:
+          DISCORD_BOT_KEY: "{{ discord.bot_key }}"
+
+          OPENAI_API_KEY: "{{ openai.api_key }}"
+          DALLE_MODEL: "{{ openai.dalle_model }}"
+
+          AWS_ENDPOINT_URL: "{{ backblaze.endpoint_url }}"
+          AWS_ACCESS_KEY_ID: "{{ backblaze.application_key_id }}"
+          AWS_SECRET_ACCESS_KEY: "{{ backblaze.application_key }}"
+
+          PG_USERNAME: "{{ postgres.username }}"
+          PG_PASSWORD: "{{ postgres.password }}"
+          PG_DB: "{{ postgres.database }}"
+          PG_HOST: "{{ postgres.host }}"
+          PG_PORT: "{{ postgres.port }}"
+
+    - name: Create Database Container
+      containers.podman.podman_container:
+        name: db-boggart
+        pod: "{{ podman.pod_name }}"
+        image: "{{ postgres.container_image }}:{{ postgres.container_tag }}"
+        state: created

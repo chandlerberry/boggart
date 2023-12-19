@@ -17,11 +17,11 @@ class ImageGenerator(commands.Cog):
         self.bot = bot
 
         from .Database import ImageDatabase
-        self.db = ImageDatabase(pg_username='postgres',
-                                pg_password='chandlerb',
-                                pg_db='postgres',
-                                pg_host='localhost',
-                                pg_port='5432')
+        self.db = ImageDatabase(pg_username=os.getenv('PG_USERNAME'),
+                                pg_password=os.getenv('PG_PASSWORD'),
+                                pg_db=os.getenv('PG_DB'),
+                                pg_host=os.getenv('PG_HOST'),
+                                pg_port=os.getenv('PG_PORT'))
 
     async def generate_image(self, **kwargs: str):
         """

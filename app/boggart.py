@@ -15,7 +15,6 @@ async def on_ready():
 async def main():
     get_secret = lambda secret_file: open(f"/run/secrets/{secret_file}", 'r').read()
     await load_cogs()
-    print(get_secret('discord_bot_key'))
     await bot.start(get_secret('discord_bot_key'))
 
 asyncio.run(main())

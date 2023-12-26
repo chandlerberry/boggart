@@ -96,10 +96,10 @@ class ImageGenerator(commands.Cog):
     @commands.command()
     async def img(self, ctx, *, prompt):
         """
-        Chat command for user to generate a 1024x1024 image using DALLE 3 Standard.
+        Chat command for a user to generate an image using DALLE 3 Standard.
         """
         # TODO: set channel as secret for container
-        if str(ctx.message.channel) != 'boggart-2':
+        if str(ctx.message.channel) != self.get_secret('discord_image_channel'):
             return
         print('Generating...')
         
@@ -108,8 +108,8 @@ class ImageGenerator(commands.Cog):
 
         try:
             image_result = await self.generate_image(prompt=str(prompt),
-                                                     image_size='1024x1024',
-                                                     image_quality='standard')
+                                                     image_size=self.get_secret('openai_dalle_image_size'),
+                                                     image_quality=self.get_secret('openai_dalle_image_quality'))
 
         except Exception as e:
             await ctx.send(f"Error generating image: {e}")
@@ -123,7 +123,6 @@ class ImageGenerator(commands.Cog):
             return
         
         lock = asyncio.Lock()
-        backblaze_bucket_name = self.get_secret('backblaze_bucket_name')
 
         try:
             # send to discord chat
@@ -136,7 +135,7 @@ class ImageGenerator(commands.Cog):
             upload = asyncio.create_task(self.upload_generated_image(lock,
                                                                      image_data=image,
                                                                      b2_filename=filename,
-                                                                     bucket_name=backblaze_bucket_name))
+                                                                     bucket_name=self.get_secret('backblaze_bucket_name')))
             # store reference to file in database
             store = asyncio.create_task(self.db.store_generated_image(b2_filename=filename,
                                                                       username=ctx.message.author.display_name,

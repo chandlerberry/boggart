@@ -22,6 +22,20 @@
         data: "{{ openai.dalle_model }}"
         skip_existing: true
 
+    - name: Create OpenAI DALLE Model Secret
+      containers.podman.podman_secret:
+        state: present
+        name: openai_dalle_image_size
+        data: "{{ openai.dalle_image_size }}"
+        skip_existing: true
+
+    - name: Create OpenAI DALLE Image Quality Secret
+      containers.podman.podman_secret:
+        state: present
+        name: openai_dalle_image_quality
+        data: "{{ openai.dalle_image_quality }}"
+        skip_existing: true
+
     - name: Create Discord Bot Key Secret
       containers.podman.podman_secret:
         state: present
@@ -101,7 +115,7 @@
 
     - name: Create Postgres Database Volume
       containers.podman.podman_volume:
-        name: pg_image_database
+        name: "{{ postgres.container_volume }}"
         state: present
 
   tasks:
@@ -139,6 +153,8 @@
         secrets:
           - openai_api_key
           - openai_dalle_model
+          - openai_dalle_image_size
+          - openai_dalle_image_quality
           - discord_bot_key
           - discord_image_channel
           - backblaze_endpoint_url
@@ -159,3 +175,5 @@
         state: created
         env:
           POSTGRES_PASSWORD: "{{ postgres.password }}"
+        volumes:
+          - "{{ postgres.container_volume }}:/var/lib/postgresql/data"

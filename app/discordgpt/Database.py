@@ -32,6 +32,7 @@ class ImageDatabase:
         """
         Store a reference to the generated image in the Boggart database
         """
+        print('Storing...')
         conn = await asyncpg.connect(user=self.pg_username,
                                      password=self.pg_password,
                                      database=self.pg_database,

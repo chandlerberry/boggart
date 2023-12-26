@@ -13,7 +13,9 @@ async def on_ready():
     print("\nBoggart Connected\n")
 
 async def main():
+    get_secret = lambda secret_file: open(f"/run/secrets/{secret_file}", 'r').read()
     await load_cogs()
-    await bot.start(os.getenv('DISCORD_BOT_KEY'))
+    print(get_secret('discord_bot_key'))
+    await bot.start(get_secret('discord_bot_key'))
 
 asyncio.run(main())

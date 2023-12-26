@@ -1,0 +1,10 @@
+---
+- name: Deploy Boggart
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  vars_files:
+    - vault.yaml
+  
+  tasks:

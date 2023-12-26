@@ -3,6 +3,6 @@ __pycache__
 .vscode/
 app/config/
 test*
-ansible/ansible.cfg
-ansible/inventory
-ansible/env.yaml
+ansible.cfg
+inventory
+ansible/vault.yaml

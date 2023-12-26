@@ -15,13 +15,14 @@ class ImageGenerator(commands.Cog):
     """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.get_secret = lambda secret_file: open(f"/run/secrets/{secret_file}", 'r').read()
+
+        os.environ['AWS_ENDPOINT_URL'] = self.get_secret('backblaze_endpoint_url')
+        os.environ['AWS_ACCESS_KEY_ID'] = self.get_secret('backblaze_application_key_id')
+        os.environ['AWS_SECRET_ACCESS_KEY'] = self.get_secret('backblaze_application_key')
 
         from .Database import ImageDatabase
-        self.db = ImageDatabase(pg_username=os.getenv('PG_USERNAME'),
-                                pg_password=os.getenv('PG_PASSWORD'),
-                                pg_db=os.getenv('PG_DB'),
-                                pg_host=os.getenv('PG_HOST'),
-                                pg_port=os.getenv('PG_PORT'))
+        self.db = ImageDatabase()
 
     async def generate_image(self, **kwargs: str):
         """
@@ -31,8 +32,8 @@ class ImageGenerator(commands.Cog):
         image_size = kwargs.get('image_size')
         image_quality = kwargs.get('image_quality')
 
-        client = OpenAI()
-        result = client.images.generate(model=os.getenv('DALLE_MODEL'),
+        client = OpenAI(api_key=self.get_secret('openai_api_key'))
+        result = client.images.generate(model=self.get_secret('openai_dalle_model'),
                                         prompt=prompt,
                                         n=1, size=image_size,
                                         quality=image_quality)
@@ -58,11 +59,12 @@ class ImageGenerator(commands.Cog):
         """
         Send Image to Discord chat
         """
+        print('Sending...')
         async with lock:
+            image_data.seek(0)
             await ctx.send(caption, file=discord.File(fp=image_data, filename=filename))
-            # TODO: log that the chat was sent
     
-    async def upload_generated_image(self, lock: asyncio.Lock, image_data: io.BytesIO, b2_filename: str, bucket_name='boggart'):
+    async def upload_generated_image(self, lock: asyncio.Lock, image_data: io.BytesIO, b2_filename: str, bucket_name: str):
         """
         Upload generated image to object storage using the `boto3` AWS API.
         
@@ -72,6 +74,7 @@ class ImageGenerator(commands.Cog):
         - `image_name`: Filename of the uploaded image
         - `bucket_name`: Name of storage bucket being 
         """
+        print('Uploading...')
         async with lock:
             image_data.seek(0)
             try:
@@ -95,19 +98,19 @@ class ImageGenerator(commands.Cog):
         """
         Chat command for user to generate a 1024x1024 image using DALLE 3 Standard.
         """
-        # TODO: set channel as environment variable for container
+        # TODO: set channel as secret for container
         if str(ctx.message.channel) != 'boggart-2':
             return
+        print('Generating...')
         
-        filename = f"{uuid.uuid4().hex}.png"
-        
+        filename = f"{uuid.uuid4().hex}.png"   
         # TODO: log that image request was recieved by 'x' user
 
         try:
             image_result = await self.generate_image(prompt=str(prompt),
                                                      image_size='1024x1024',
                                                      image_quality='standard')
-            
+
         except Exception as e:
             await ctx.send(f"Error generating image: {e}")
             return
@@ -120,6 +123,7 @@ class ImageGenerator(commands.Cog):
             return
         
         lock = asyncio.Lock()
+        backblaze_bucket_name = self.get_secret('backblaze_bucket_name')
 
         try:
             # send to discord chat
@@ -132,7 +136,7 @@ class ImageGenerator(commands.Cog):
             upload = asyncio.create_task(self.upload_generated_image(lock,
                                                                      image_data=image,
                                                                      b2_filename=filename,
-                                                                     bucket_name='boggart'))
+                                                                     bucket_name=backblaze_bucket_name))
             # store reference to file in database
             store = asyncio.create_task(self.db.store_generated_image(b2_filename=filename,
                                                                       username=ctx.message.author.display_name,

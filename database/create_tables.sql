@@ -14,3 +14,7 @@ CREATE TABLE IF NOT EXISTS GeneratedImages (
     Caption TEXT NOT NULL,
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
+
+INSERT INTO Users (Username)
+VALUES
+    ('chndlr');

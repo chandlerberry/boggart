@@ -4,12 +4,13 @@ class ImageDatabase:
     """
     Database class using the asyncpg PostgreSQL Driver
     """
-    def __init__(self, **kwargs):
-        self.pg_username = kwargs.get("pg_username")
-        self.pg_password = kwargs.get("pg_password")
-        self.pg_database = kwargs.get("pg_db")
-        self.pg_host = kwargs.get("pg_host")
-        self.pg_port = kwargs.get("pg_port")
+    def __init__(self):
+        self.get_secret = lambda secret_file: open(f"/run/secrets/{secret_file}", 'r').read()
+        self.pg_username = self.get_secret("postgres_username")
+        self.pg_password = self.get_secret("postgres_password")
+        self.pg_database = self.get_secret("postgres_database")
+        self.pg_host = self.get_secret("postgres_host")
+        self.pg_port = self.get_secret("postgres_port")
 
     async def create_user(self, username: str):
         """

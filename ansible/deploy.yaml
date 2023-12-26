@@ -3,6 +3,107 @@
   hosts: localhost
   gather_facts: false
   connection: local
+
+  vars_files:
+    - vault.yaml
+
+  pre_tasks:
+    - name: Create OpenAI API Key Secret
+      containers.podman.podman_secret:
+        state: present
+        name: openai_api_key
+        data: "{{ openai.api_key }}"
+        skip_existing: true
+
+    - name: Create OpenAI DALLE Model Secret
+      containers.podman.podman_secret:
+        state: present
+        name: openai_dalle_model
+        data: "{{ openai.dalle_model }}"
+        skip_existing: true
+
+    - name: Create Discord Bot Key Secret
+      containers.podman.podman_secret:
+        state: present
+        name: discord_bot_key
+        data: "{{ discord.bot_key }}"
+        skip_existing: true
+
+    - name: Create Discord Image Channel Secret
+      containers.podman.podman_secret:
+        state: present
+        name: discord_image_channel
+        data: "{{ discord.image_channel }}"
+        skip_existing: true
+
+    - name: Create Backblaze Endpoint URL Secret
+      containers.podman.podman_secret:
+        state: present
+        name: backblaze_endpoint_url
+        data: "{{ backblaze.endpoint_url }}"
+        skip_existing: true
+
+    - name: Create Backblaze Application Key ID Secret
+      containers.podman.podman_secret:
+        state: present
+        name: backblaze_application_key_id
+        data: "{{ backblaze.application_key_id }}"
+        skip_existing: true
+
+    - name: Create Backblaze Application Key Secret
+      containers.podman.podman_secret:
+        state: present
+        name: backblaze_application_key
+        data: "{{ backblaze.application_key }}"
+        skip_existing: true
+
+    - name: Create Backblaze Application Key Secret
+      containers.podman.podman_secret:
+        state: present
+        name: backblaze_bucket_name
+        data: "{{ backblaze.bucket_name }}"
+        skip_existing: true
+
+    - name: Create Postgres Username Secret
+      containers.podman.podman_secret:
+        state: present
+        name: postgres_username
+        data: "{{ postgres.username }}"
+        skip_existing: true
+
+    - name: Create Postgres Password Secret
+      containers.podman.podman_secret:
+        state: present
+        name: postgres_password
+        data: "{{ postgres.password }}"
+        skip_existing: true
+
+    - name: Create Postgres Database Name Secret
+      containers.podman.podman_secret:
+        state: present
+        name: postgres_database
+        data: "{{ postgres.database }}"
+        skip_existing: true
+
+    - name: Create Postgres Hostname Secret
+      containers.podman.podman_secret:
+        state: present
+        name: postgres_host
+        data: "{{ postgres.host }}"
+        skip_existing: true
+
+    - name: Create Postgres Port Secret
+      containers.podman.podman_secret:
+        state: present
+        name: postgres_port
+        data: "{{ postgres.port }}"
+        skip_existing: true
+
+    - name: Create Postgres Database Volume
+      containers.podman.podman_volume:
+        name: pg_image_database
+        state: present
+
   tasks:
     - name: Login to GitHub Container Registry
       containers.podman.podman_login:
@@ -18,8 +119,8 @@
 
     - name: Pull Database Image
       containers.podman.podman_image:
-        name: "{{ database.container_image }}"
-        tag: "{{ database.container_tag }}"
+        name: "{{ postgres.container_image }}"
+        tag: "{{ postgres.container_tag }}"
         state: present
 
     - name: Create Pod
@@ -35,23 +136,20 @@
         pod: "{{ podman.pod_name }}"
         image: "{{ boggart.container_image }}:{{ boggart.container_tag }}"
         state: created
-        volume:
-          - "{{ boggart.config_mount }}"
-        env:
-          DISCORD_BOT_KEY: "{{ discord.bot_key }}"
-
-          OPENAI_API_KEY: "{{ openai.api_key }}"
-          DALLE_MODEL: "{{ openai.dalle_model }}"
-
-          AWS_ENDPOINT_URL: "{{ backblaze.endpoint_url }}"
-          AWS_ACCESS_KEY_ID: "{{ backblaze.application_key_id }}"
-          AWS_SECRET_ACCESS_KEY: "{{ backblaze.application_key }}"
-
-          PG_USERNAME: "{{ postgres.username }}"
-          PG_PASSWORD: "{{ postgres.password }}"
-          PG_DB: "{{ postgres.database }}"
-          PG_HOST: "{{ postgres.host }}"
-          PG_PORT: "{{ postgres.port }}"
+        secrets:
+          - openai_api_key
+          - openai_dalle_model
+          - discord_bot_key
+          - discord_image_channel
+          - backblaze_endpoint_url
+          - backblaze_application_key_id
+          - backblaze_application_key
+          - backblaze_bucket_name
+          - postgres_username
+          - postgres_password
+          - postgres_database
+          - postgres_host
+          - postgres_port
 
     - name: Create Database Container
       containers.podman.podman_container:
@@ -59,3 +157,5 @@
         pod: "{{ podman.pod_name }}"
         image: "{{ postgres.container_image }}:{{ postgres.container_tag }}"
         state: created
+        env:
+          POSTGRES_PASSWORD: "{{ postgres.password }}"

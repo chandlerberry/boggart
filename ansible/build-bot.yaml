@@ -6,7 +6,7 @@
 
   vars_files:
     - vault.yaml
-  
+
   tasks:
     - name: Login to GitHub Container Registry
       containers.podman.podman_login:

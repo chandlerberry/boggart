@@ -98,14 +98,14 @@ class ImageGenerator(commands.Cog):
         """
         Chat command for a user to generate an image using DALLE 3 Standard.
         """
-        # TODO: set channel as secret for container
         if str(ctx.message.channel) != self.get_secret('discord_image_channel'):
             return
         print('Generating...')
         
         filename = f"{uuid.uuid4().hex}.png"
-        link = f"https://boggart.s3.us-east-005.backblazeb2.com/{filename}"   
-        # TODO: log that image request was recieved by 'x' user
+        link = f"https://boggart.s3.us-east-005.backblazeb2.com/{filename}"
+
+        print(f"request recieved from {ctx.message.author.display_name}")
 
         try:
             image_result = await self.generate_image(prompt=str(prompt),

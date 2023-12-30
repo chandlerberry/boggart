@@ -1,5 +1,5 @@
 ---
-- name: Deploy Boggart
+- name: Build Boggart Containers
   hosts: localhost
   gather_facts: false
   connection: local
@@ -8,3 +8,18 @@
     - vault.yaml
   
   tasks:
+    - name: Login to GitHub Container Registry
+      containers.podman.podman_login:
+        username: "{{ github.username }}"
+        password: "{{ github.personal_access_token }}"
+        registry: "{{ podman.registry }}"
+
+    - name: Build bot container image
+      containers.podman.podman_image:
+        name: "{{ boggart.container_image }}"
+        tag: "{{ boggart.container_tag }}"
+        pull: false
+        path: ../app
+        build:
+          cache: false
+        state: build

@@ -19,7 +19,7 @@
         name: "{{ boggart.container_image }}"
         tag: "{{ boggart.container_tag }}"
         pull: false
-        path: ../app
+        path: ../src
         build:
           cache: false
         state: build

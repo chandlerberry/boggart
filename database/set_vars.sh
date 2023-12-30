@@ -1,0 +1,1 @@
+export POSTGRES_PASSWORD=$(cat /run/secrets/postgres_password)

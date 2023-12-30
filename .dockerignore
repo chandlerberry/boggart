@@ -1,8 +1,5 @@
 __pycache__
-.env/
-keys.json
+discordgpt/__pycache__
 logs/*
-cmd.txt
-.git
-.gitignore
 Dockerfile
+test*

@@ -8,7 +8,6 @@ import uuid
 from discord.ext import commands
 from openai import OpenAI
 from botocore.exceptions import NoCredentialsError
-from .Database import ImageDatabase
 
 class ImageGenerator(commands.Cog):
     """
@@ -22,6 +21,7 @@ class ImageGenerator(commands.Cog):
         os.environ['AWS_ACCESS_KEY_ID'] = self.get_secret('backblaze_application_key_id')
         os.environ['AWS_SECRET_ACCESS_KEY'] = self.get_secret('backblaze_application_key')
 
+        from .Database import ImageDatabase
         self.db = ImageDatabase()
 
     async def generate_image(self, **kwargs: str):

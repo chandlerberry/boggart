@@ -103,7 +103,8 @@ class ImageGenerator(commands.Cog):
             return
         print('Generating...')
         
-        filename = f"{uuid.uuid4().hex}.png"   
+        filename = f"{uuid.uuid4().hex}.png"
+        link = f"https://boggart.s3.us-east-005.backblazeb2.com/{filename}"   
         # TODO: log that image request was recieved by 'x' user
 
         try:
@@ -137,7 +138,7 @@ class ImageGenerator(commands.Cog):
                                                                      b2_filename=filename,
                                                                      bucket_name=self.get_secret('backblaze_bucket_name')))
             # store reference to file in database
-            store = asyncio.create_task(self.db.store_generated_image(b2_filename=filename,
+            store = asyncio.create_task(self.db.store_generated_image(b2_link=link,
                                                                       username=ctx.message.author.display_name,
                                                                       prompt=prompt,
                                                                       caption=image_result.data[0].revised_prompt))

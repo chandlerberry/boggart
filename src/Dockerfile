@@ -9,4 +9,4 @@ ENV PYTHONUNBUFFERED=1
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["/usr/local/bin/python3", "/usr/src/app/boggart2.py"]
+CMD ["/usr/local/bin/python3", "/usr/src/app/boggart.py"]

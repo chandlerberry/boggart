@@ -103,7 +103,7 @@ class ImageGenerator(commands.Cog):
         """
         if str(ctx.message.channel) != self.get_secret('discord_image_channel'):
             return
-        await ctx.send(f'Generating image for {ctx.message.author.display_name}')
+        await ctx.send(f'Generating...')
         self.img_logger.info(f'Image request recieved from {ctx.message.author.display_name}')
         
         filename = f"{uuid.uuid4().hex}.png"

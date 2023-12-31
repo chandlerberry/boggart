@@ -74,9 +74,12 @@
         name: db-boggart
         pod: "{{ podman.pod_name }}"
         image: "{{ postgres.container_image }}:{{ postgres.container_tag }}"
+        env:
+          POSTGRES_USER: "{{ postgres.username }}"
+          POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+        state: created
         secrets:
           - postgres_password
-        state: created
         volumes:
           - "{{ postgres.container_volume }}:{{ postgres.container_volume_target }}"
 

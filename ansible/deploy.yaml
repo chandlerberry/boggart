@@ -1,17 +1,13 @@
 ---
 - name: Deploy Boggart
-  hosts: localhost
+  hosts: all
   gather_facts: false
-  connection: local
-
-  vars_files:
-    - vault.yaml
 
   pre_tasks:
-    - name: Login to GitHub Container Registry
+    - name: Login to Container Registry
       containers.podman.podman_login:
-        username: "{{ github.username }}"
-        password: "{{ github.personal_access_token }}"
+        username: "{{ podman.registry_username }}"
+        password: "{{ podman.registry_password }}"
         registry: "{{ podman.registry }}"
 
     - name: Pull Application Image

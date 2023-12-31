@@ -1,9 +1,7 @@
 __pycache__
-src/config
 .env/
 .vscode/
-app/config/
 test*
+ansible/*vault.yaml
 ansible.cfg
 inventory
-ansible/vault.yaml

@@ -3,15 +3,11 @@
   hosts: localhost
   gather_facts: false
   connection: local
-
-  vars_files:
-    - vault.yaml
-
   tasks:
     - name: Login to GitHub Container Registry
       containers.podman.podman_login:
-        username: "{{ github.username }}"
-        password: "{{ github.personal_access_token }}"
+        username: "{{ podman.registry_username }}"
+        password: "{{ podman.registry_password }}"
         registry: "{{ podman.registry }}"
 
     - name: Build bot container image
@@ -23,3 +19,27 @@
         build:
           cache: false
         state: build
+
+    - name: Push bot image to ghcr.io
+      containers.podman.podman_image:
+        name: "{{ boggart.container_image }}"
+        tag: "{{ boggart.container_tag }}"
+        pull: false
+        push: true
+
+    - name: Build bot database image
+      containers.podman.podman_image:
+        name: "{{ postgres.container_tag }}"
+        tag: "{{ postgres.container_tag }}"
+        pull: false
+        path: ../database
+        build:
+          cache: false
+        state: build
+
+    - name: Push database image to ghcr.io
+      containers.podman.podman_image:
+        name: "{{ postgres.container_image }}"
+        tag: "{{ postgres.container_tag }}"
+        pull: false
+        push: true

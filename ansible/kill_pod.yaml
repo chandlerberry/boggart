@@ -1,7 +1,0 @@
-- name: Destroy Boggart Pod(s)
-  hosts: localhost
-  gather_facts: false
-  connection: local
-
-  tasks:
-    - name: Kill Boggart Pod

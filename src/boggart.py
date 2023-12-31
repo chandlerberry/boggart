@@ -96,10 +96,10 @@ async def main():
     pg_host = get_secret('postgres_host')
     pg_port = get_secret('postgres_port')
     pg_database = get_secret('postgres_database')
-    pg_dsn = f'postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_database}'
+    # pg_dsn = f'postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_database}'
 
     # async with ClientSession() as boggart_client, asyncpg.create_pool(dsn=pg_dsn, command_timeout=60) as pool:
-    async with asyncpg.create_pool(dsn=pg_dsn, command_timeout=60) as pool:
+    async with asyncpg.create_pool(user=pg_user, password=pg_pass, host=pg_host, port=pg_port, database=pg_database, command_timeout=60) as pool:
         exts = ['discordgpt.ImageGenerator']
         intents = discord.Intents.default()
         intents.message_content = True

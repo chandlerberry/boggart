@@ -4,13 +4,13 @@
   gather_facts: false
   connection: local
   tasks:
-    - name: Login to GitHub Container Registry
+    - name: Login to Container Registry
       containers.podman.podman_login:
         username: "{{ podman.registry_username }}"
         password: "{{ podman.registry_password }}"
         registry: "{{ podman.registry }}"
 
-    - name: Build bot container image
+    - name: Build Bot Container Image
       containers.podman.podman_image:
         name: "{{ boggart.container_image }}"
         tag: "{{ boggart.container_tag }}"
@@ -20,14 +20,14 @@
           cache: false
         state: build
 
-    - name: Push bot image to ghcr.io
+    - name: Push Bot Image
       containers.podman.podman_image:
         name: "{{ boggart.container_image }}"
         tag: "{{ boggart.container_tag }}"
         pull: false
         push: true
 
-    - name: Build bot database image
+    - name: Build Database Image
       containers.podman.podman_image:
         name: "{{ postgres.container_tag }}"
         tag: "{{ postgres.container_tag }}"
@@ -37,7 +37,7 @@
           cache: false
         state: build
 
-    - name: Push database image to ghcr.io
+    - name: Push Database Image
       containers.podman.podman_image:
         name: "{{ postgres.container_image }}"
         tag: "{{ postgres.container_tag }}"

@@ -74,14 +74,17 @@
         name: db-boggart
         pod: "{{ podman.pod_name }}"
         image: "{{ postgres.container_image }}:{{ postgres.container_tag }}"
-        env:
-          POSTGRES_USER: "{{ postgres.username }}"
-          POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
         state: created
         secrets:
+          - postgres_username
           - postgres_password
+          - postgres_database
         volumes:
           - "{{ postgres.container_volume }}:{{ postgres.container_volume_target }}"
+        env:
+          POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+          POSTGRES_USER_FILE: /run/secrets/postgres_username
+          POSTGRES_DB_FILE: /run/secrets/postgres_database
 
     - name: Create pgAdmin Container
       containers.podman.podman_container:
@@ -95,3 +98,18 @@
           PGADMIN_DEFAULT_EMAIL: "{{ pgadmin.default_email }}"
           PGADMIN_DEFAULT_PASSWORD: "{{ pgadmin.default_password }}"
           PGADMIN_LISTEN_PORT: "{{ pgadmin.listen_port }}"
+
+    - name: Start Postgres Container
+      containers.podman.podman_container:
+        name: db-boggart
+        state: started
+
+    - name: Start pgAdmin Container
+      containers.podman.podman_container:
+        name: pgadmin-boggart
+        state: started
+
+    - name: Start Boggart Container
+      containers.podman.podman_container:
+        name: app-boggart
+        state: started

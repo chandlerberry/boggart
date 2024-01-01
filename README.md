@@ -1,4 +1,2 @@
 # Boggart
-A Discord Bot that utilizes OpenAI's API for Image Generation and (soon) Chat Completions
-
-docs coming soon...
+A Discord Bot using the OpenAI API to generate images using DALLE 3

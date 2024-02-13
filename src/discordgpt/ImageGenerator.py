@@ -29,6 +29,10 @@ class ImageGenerator(commands.Cog):
         self.img_logger.setLevel(logging.INFO)
         self.img_logger.addHandler(self.stream_handler)
 
+        self.pg_logger = logging.getLogger('discordgpt.postgres')
+        self.pg_logger.setLevel(logging.INFO)
+        self.pg_logger.addHandler(self.stream_handler)
+        
         os.environ['AWS_ENDPOINT_URL'] = self.get_secret('backblaze_endpoint_url')
         os.environ['AWS_ACCESS_KEY_ID'] = self.get_secret('backblaze_application_key_id')
         os.environ['AWS_SECRET_ACCESS_KEY'] = self.get_secret('backblaze_application_key')
@@ -183,9 +187,9 @@ class ImageGenerator(commands.Cog):
             return
 
         try:
-            async with asyncio.TaskGroup() as sus:
+            async with asyncio.TaskGroup() as tg:
                 # send to discord chat
-                sus.send = asyncio.create_task(
+                tg.send = asyncio.create_task(
                     self.__send_image(
                         ctx, 
                         image_data=image, 
@@ -195,7 +199,7 @@ class ImageGenerator(commands.Cog):
                 )
 
                 # upload to backblaze
-                sus.upload = asyncio.create_task(
+                tg.upload = asyncio.create_task(
                     self.__upload_generated_image( 
                         image_data=image,
                         b2_filename=filename, 
@@ -204,7 +208,7 @@ class ImageGenerator(commands.Cog):
                 )
 
                 # store reference to file in database
-                sus.store = asyncio.create_task(
+                tg.store = asyncio.create_task(
                     self.__store_generated_image(
                         b2_filename=filename, 
                         b2_link=link, 

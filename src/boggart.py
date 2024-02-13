@@ -3,10 +3,9 @@ import asyncpg
 import logging
 import logging.handlers
 import sys
-from typing import List #, Optional
+from typing import List
 import discord
 from discord.ext import commands
-# from aiohttp import ClientSession
 
 class Boggart(commands.Bot):
     def __init__(
@@ -14,16 +13,13 @@ class Boggart(commands.Bot):
         *args,
         initial_extensions: List[str],
         db_pool: asyncpg.Pool,
-        # web_client: ClientSession,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        # self.web_client = web_client
         self.initial_extensions = initial_extensions
         self.db_pool = db_pool
         self.command_prefix='!'
         self.logger = logging.getLogger('discord')
-        self.pg_logger = logging.getLogger('discordgpt.postgres')
 
     async def setup_hook(self) -> None:
         """
@@ -37,26 +33,22 @@ class Boggart(commands.Bot):
 async def main():
     get_secret = lambda secret_file: open(f"/run/secrets/{secret_file}", 'r').read()
 
-    stream_handler = logging.StreamHandler(stream=sys.stdout)
     date_format = '%Y-%m-%d %H:%M:%S'
     formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', date_format, style='{')
+    
+    stream_handler = logging.StreamHandler(stream=sys.stdout)
     stream_handler.setFormatter(formatter)
 
     discord_logger = logging.getLogger('discord')
     discord_logger.setLevel(logging.INFO)
     discord_logger.addHandler(stream_handler)
-
-    pg_logger = logging.getLogger('discordgpt.postgres')
-    pg_logger.setLevel(logging.INFO)
-    pg_logger.addHandler(stream_handler)
+    
     pg_user = get_secret('postgres_username')
     pg_pass = get_secret('postgres_password')
     pg_host = get_secret('postgres_host')
     pg_port = get_secret('postgres_port')
     pg_database = get_secret('postgres_database')
-    # pg_dsn = f'postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_database}'
 
-    # async with ClientSession() as boggart_client, asyncpg.create_pool(dsn=pg_dsn, command_timeout=60) as pool:
     async with asyncpg.create_pool(
         user=pg_user,
         password=pg_pass,

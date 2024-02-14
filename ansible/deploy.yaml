@@ -39,6 +39,10 @@
         state: present
 
   tasks:
+    - name: Create Boggart Network
+      containers.podman.podman_network:
+        name: "{{ podman.network_name }}"
+
     - name: Create Pod
       containers.podman.podman_pod:
         name: "{{ podman.pod_name }}"
@@ -48,7 +52,7 @@
 
     - name: Create Boggart Container
       containers.podman.podman_container:
-        name: app-boggart
+        name: boggart-bot
         pod: "{{ podman.pod_name }}"
         image: "{{ boggart.container_image }}:{{ boggart.container_tag }}"
         state: created
@@ -69,9 +73,9 @@
           - postgres_host
           - postgres_port
 
-    - name: Create Database Container
+    - name: Create Postgres Container
       containers.podman.podman_container:
-        name: db-boggart
+        name: boggart-postgres
         pod: "{{ podman.pod_name }}"
         image: "{{ postgres.container_image }}:{{ postgres.container_tag }}"
         state: created
@@ -88,7 +92,7 @@
 
     - name: Create pgAdmin Container
       containers.podman.podman_container:
-        name: pgadmin-boggart
+        name: boggart-pgadmin
         pod: "{{ podman.pod_name }}"
         image: "{{ pgadmin.container_image }}:{{ pgadmin.container_tag }}"
         state: created
@@ -101,15 +105,15 @@
 
     - name: Start Postgres Container
       containers.podman.podman_container:
-        name: db-boggart
+        name: boggart-postgres
         state: started
 
     - name: Start pgAdmin Container
       containers.podman.podman_container:
-        name: pgadmin-boggart
+        name: boggart-pgadmin
         state: started
 
-    - name: Start Boggart Container
+    - name: Start Boggart Bot Container
       containers.podman.podman_container:
-        name: app-boggart
+        name: boggart-bot
         state: started

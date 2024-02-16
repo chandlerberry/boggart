@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  login:
+  build-and-push-container-images:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -44,4 +44,5 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: true
-          tags: ${{ steps.meta.outputs.image }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

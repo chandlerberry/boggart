@@ -16,10 +16,10 @@ jobs:
       matrix:
         include:
           - context: ./bot
-            dockerfile: Dockerfile
+            dockerfile: ./bot/Dockerfile
             image: docker.io/chndlr/boggart
           - context: ./database
-            dockerfile: Dockerfile
+            dockerfile: ./database/Dockerfile
             image: docker.io/chndlr/db-boggart
 
     steps:

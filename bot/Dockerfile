@@ -1,4 +1,4 @@
-FROM docker.io/library/python:3.11.8-slim-bookworm@sha256:93f65e226cd297cee60fbdc2241d2415a479cb68d0199da4345ec8d2627c9bbf as builder
+FROM docker.io/library/python:3.11.8-slim-bookworm as builder
 
 WORKDIR /build
 
@@ -9,7 +9,7 @@ RUN pip wheel --no-cache-dir --wheel-dir /build/wheels -r requirements.txt
 
 ENV PYTHONUNBUFFERED=1
 
-FROM docker.io/library/python:3.11.8-slim-bookworm@sha256:93f65e226cd297cee60fbdc2241d2415a479cb68d0199da4345ec8d2627c9bbf
+FROM docker.io/library/python:3.11.8-slim-bookworm
 
 COPY --from=builder /build/wheels /wheels
 COPY --from=builder /build/requirements.txt .

@@ -1,5 +1,6 @@
 __pycache__
-discordgpt/__pycache__
+*__pycache__
 logs/*
 Dockerfile
 test*
+db/

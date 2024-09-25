@@ -1,0 +1,25 @@
+services:
+  boggart:
+    image: chndlr/boggart:latest
+    env_file: "${PWD}/.env/boggart.env"
+    networks:
+      - boggart-network
+
+  postgres:
+    image: postgres:16
+    volumes:
+      - boggart-postgres:/var/lib/postgresql/data
+    env_file: "${PWD}/.env/postgres.env"
+    networks:
+      - boggart-network
+
+  pgadmin:
+    image: dpage/pgadmin4:8.11
+    volumes:
+      - boggart-pgadmin:/var/lib/pgadmin
+    env_file: "${PWD}/.env/pgadmin.env"
+    networks:
+      - boggart-network
+
+networks:
+  boggart-network:

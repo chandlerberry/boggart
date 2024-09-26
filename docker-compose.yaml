@@ -1,7 +1,7 @@
 services:
   boggart:
     build:
-      context: "${PWD}/boggart"
+      context: "boggart"
       dockerfile: Dockerfile
     image: chndlr/boggart:latest
     env_file: "${PWD}/.env/boggart.env"

@@ -1,5 +1,8 @@
 services:
   boggart:
+    build:
+      context: "${PWD}/boggart"
+      dockerfile: Dockerfile
     image: chndlr/boggart:latest
     env_file: "${PWD}/.env/boggart.env"
     networks:
@@ -8,6 +11,7 @@ services:
   postgres:
     image: postgres:16
     volumes:
+      - "${PWD}/db:/docker-entrypoint-initdb.d/"
       - boggart-postgres:/var/lib/postgresql/data
     env_file: "${PWD}/.env/postgres.env"
     networks:

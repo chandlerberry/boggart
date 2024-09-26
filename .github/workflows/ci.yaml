@@ -10,8 +10,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - context: ./bot
-            dockerfile: ./bot/Dockerfile
+          - context: ./boggart
+            dockerfile: ./boggart/Dockerfile
             image: docker.io/chndlr/boggart
 
     steps:

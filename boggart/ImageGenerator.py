@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import uuid
+
 from aiohttp import ClientSession
 from discord.ext import commands
 from openai import OpenAI
@@ -16,7 +17,6 @@ class ImageGenerator(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
-        self.get_secret = lambda secret_file: open(f"/run/secrets/{secret_file}", 'r').read()
         self.lock = asyncio.Lock()
 
         self.stream_handler = logging.StreamHandler(stream=sys.stdout)
@@ -31,10 +31,6 @@ class ImageGenerator(commands.Cog):
         self.pg_logger = logging.getLogger('discordgpt.postgres')
         self.pg_logger.setLevel(logging.INFO)
         self.pg_logger.addHandler(self.stream_handler)
-        
-        os.environ['AWS_ENDPOINT_URL'] = self.get_secret('backblaze_endpoint_url')
-        os.environ['AWS_ACCESS_KEY_ID'] = self.get_secret('backblaze_application_key_id')
-        os.environ['AWS_SECRET_ACCESS_KEY'] = self.get_secret('backblaze_application_key')
 
     async def __generate_image(self, **kwargs: str):
         """Generates an image result from the provided prompt using the OpenAI API `client.images.generate()`"""
@@ -42,9 +38,9 @@ class ImageGenerator(commands.Cog):
         image_size = kwargs.get('image_size')
         image_quality = kwargs.get('image_quality')
 
-        client = OpenAI(api_key=self.get_secret('openai_api_key'))
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         result = client.images.generate(
-            model=self.get_secret('openai_dalle_model'),
+            model=os.getenv('OPENAI_DALLE_MODEL'),
             prompt=prompt,
             n=1, size=image_size,
             quality=image_quality
@@ -134,7 +130,7 @@ class ImageGenerator(commands.Cog):
     async def img(self, ctx, *, prompt):
         """Chat command for a user to generate an image using DALLE 3 Standard."""
 
-        if str(ctx.message.channel) != self.get_secret('discord_image_channel'):
+        if str(ctx.message.channel) != os.getenv('DISCORD_IMAGE_CHANNEL'):
             return
         
         await ctx.send(f'Generating...')
@@ -146,8 +142,8 @@ class ImageGenerator(commands.Cog):
         try:
             image_result = await self.__generate_image(
                 prompt=str(prompt),
-                image_size=self.get_secret('openai_dalle_image_size'),
-                image_quality=self.get_secret('openai_dalle_image_quality')
+                image_size=os.getenv('OPENAI_DALLE_IMAGE_SIZE'),
+                image_quality=os.getenv('OPENAI_DALLE_IMAGE_QUALITY')
             )
 
         except Exception as e:
@@ -180,7 +176,7 @@ class ImageGenerator(commands.Cog):
                     self.__upload_generated_image( 
                         image_data=image,
                         b2_filename=filename, 
-                        bucket_name=self.get_secret('backblaze_bucket_name')
+                        bucket_name=os.getenv('BACKBLAZE_BUCKET')
                     )
                 )
 

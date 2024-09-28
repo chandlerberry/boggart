@@ -4,26 +4,48 @@ services:
       context: "boggart"
       dockerfile: Dockerfile
     image: chndlr/boggart:latest
-    env_file: "${PWD}/.env/boggart.env"
+    container_name: boggart
+    environment:
+      - "OPENAI_API_KEY=${OPENAI_API_KEY}"
+      - "OPENAI_DALLE_MODEL=${OPENAI_DALLE_MODEL}"
+      - "OPENAI_DALLE_IMAGE_SIZE=${OPENAI_DALLE_IMAGE_SIZE}"
+      - "OPENAI_DALLE_IMAGE_QUALITY=${OPENAI_DALLE_IMAGE_QUALITY}"
+      - "DISCORD_IMAGE_CHANNEL=${DISCORD_IMAGE_CHANNEL}"
+      - "OBJ_BUCKET=${OBJ_BUCKET}"
+      - "AWS_ENDPOINT_URL=${AWS_ENDPOINT_URL}"
+      - "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
+      - "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
     networks:
       - boggart-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ~/minio/data:/data
+    environment:
+      - ""
+    command: server /data --console-address ":9001"
 
   postgres:
     image: postgres:16
+    container_name: postgres
     volumes:
       - "${PWD}/db:/docker-entrypoint-initdb.d/"
       - boggart-postgres:/var/lib/postgresql/data
-    env_file: "${PWD}/.env/postgres.env"
-    networks:
-      - boggart-network
-
-  pgadmin:
-    image: dpage/pgadmin4:8.11
-    volumes:
-      - boggart-pgadmin:/var/lib/pgadmin
-    env_file: "${PWD}/.env/pgadmin.env"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
       - boggart-network
 
 networks:
   boggart-network:
+
+volumes:
+  boggart-postgres:
+  boggart-cloudbeaver:

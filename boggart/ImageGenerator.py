@@ -80,7 +80,7 @@ class ImageGenerator(commands.Cog):
     async def __upload_generated_image(self, image_data: io.BytesIO, obj_filename: str, bucket_name: str) -> None:
         """Upload generated image to object storage using the `boto3` package"""
 
-        self.img_logger.info(f'Uploading image {obj_filename} to Backblaze')
+        self.img_logger.info(f'Uploading image {obj_filename} to object storage')
         
         async with self.lock:
             image_data.seek(0)
@@ -89,7 +89,7 @@ class ImageGenerator(commands.Cog):
                 b2.put_object(Bucket=bucket_name, Key=obj_filename, Body=image_data)
 
             except NoCredentialsError as e:
-                self.img_logger.error(f'Issue with Backblaze Credentials: {e}')
+                self.img_logger.error(f'Issue with object storage Credentials: {e}')
 
     # todo: switch to local object store
     async def __store_generated_image(self, obj_filename: str, b2_link: str, username: str, prompt: str, caption: str):
@@ -137,7 +137,7 @@ class ImageGenerator(commands.Cog):
         self.img_logger.info(f'Image request recieved from {ctx.message.author.display_name}')
         
         filename = f"{uuid.uuid4().hex}.png"
-        link = f"https://boggart.s3.us-east-005.backblazeb2.com/{filename}"
+        link = f"https://boggart.s3.us-east-005.object storageb2.com/{filename}"
 
         try:
             image_result = await self.__generate_image(
@@ -171,12 +171,12 @@ class ImageGenerator(commands.Cog):
                     )
                 )
 
-                # upload to backblaze
+                # upload to object storage
                 tg.upload = asyncio.create_task(
                     self.__upload_generated_image( 
                         image_data=image,
                         obj_filename=filename, 
-                        bucket_name=os.getenv('BACKBLAZE_BUCKET')
+                        bucket_name=os.getenv('OBJ_BUCKET')
                     )
                 )
 

@@ -76,7 +76,6 @@ class ImageGenerator(commands.Cog):
             image_data.seek(0)
             await ctx.send(caption, file=discord.File(fp=image_data, filename=filename))
     
-    # todo: switch to local object store
     async def __upload_generated_image(self, image_data: io.BytesIO, obj_filename: str, bucket_name: str) -> None:
         """Upload generated image to object storage using the `boto3` package"""
 
@@ -91,7 +90,6 @@ class ImageGenerator(commands.Cog):
             except NoCredentialsError as e:
                 self.img_logger.error(f'Issue with object storage Credentials: {e}')
 
-    # todo: switch to local object store
     async def __store_generated_image(self, obj_filename: str, b2_link: str, username: str, prompt: str, caption: str):
         """Store a reference to the generated image in Postgres"""
 
@@ -137,7 +135,7 @@ class ImageGenerator(commands.Cog):
         self.img_logger.info(f'Image request recieved from {ctx.message.author.display_name}')
         
         filename = f"{uuid.uuid4().hex}.png"
-        link = f"https://boggart.s3.us-east-005.object storageb2.com/{filename}"
+        link = f"{os.getenv('OBJ_STORAGE_CONNECTION')}{filename}"
 
         try:
             image_result = await self.__generate_image(

@@ -1,23 +1,4 @@
 services:
-  boggart:
-    build:
-      context: "boggart"
-      dockerfile: Dockerfile
-    image: chndlr/boggart:docker-migrate
-    container_name: boggart
-    environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_DALLE_MODEL: ${OPENAI_DALLE_MODEL}
-      OPENAI_DALLE_IMAGE_SIZE: ${OPENAI_DALLE_IMAGE_SIZE}
-      OPENAI_DALLE_IMAGE_QUALITY: ${OPENAI_DALLE_IMAGE_QUALITY}
-      DISCORD_IMAGE_CHANNEL: ${DISCORD_IMAGE_CHANNEL}
-      OBJ_BUCKET: ${OBJ_BUCKET}
-      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-    networks:
-      - boggart-network
-
   minio:
     image: minio/minio:latest
     container_name: minio
@@ -43,10 +24,36 @@ services:
       - boggart-postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${POSTGRES_DATABASE}
-      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
       - boggart-network
+
+  boggart:
+    build:
+      context: "boggart"
+      dockerfile: Dockerfile
+    image: chndlr/boggart:docker-migrate
+    container_name: boggart
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_DALLE_MODEL: ${OPENAI_DALLE_MODEL}
+      OPENAI_DALLE_IMAGE_SIZE: ${OPENAI_DALLE_IMAGE_SIZE}
+      OPENAI_DALLE_IMAGE_QUALITY: ${OPENAI_DALLE_IMAGE_QUALITY}
+      DISCORD_IMAGE_CHANNEL: ${DISCORD_IMAGE_CHANNEL}
+      OBJ_BUCKET: ${OBJ_BUCKET}
+      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: $ {POSTGRES_PORT}
+    networks:
+      - boggart-network
+    depends_on:
+      - postgres
 
 networks:
   boggart-network:

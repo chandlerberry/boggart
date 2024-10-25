@@ -41,7 +41,7 @@ async def main():
         user=os.getenv('POSTGRES_USERNAME'),
         password=os.getenv('POSTGRES_PASSWORD'),
         host=os.getenv('POSTGRES_HOST'),
-        port=os.getenv('POSTGRES_PORT'),
+        port=int(os.getenv('POSTGRES_PORT')),
         database=os.getenv('POSTGRES_DATABASE'),
         command_timeout=60) as pool:
         

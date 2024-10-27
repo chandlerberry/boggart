@@ -1,22 +1,38 @@
 # Environment Configuration
 
-## Bot
-### Docker Container Environment Vars
-- openai_api_key
-- openai_dalle_model
-- openai_dalle_image_size
-- openai_dalle_image_quality
-- discord_bot_key
-- discord_image_channel
-- backblaze_endpoint_url
-- backblaze_application_key_id
-- backblaze_application_key
-- backblaze_bucket_name
-- postgres_username
-- postgres_password
-- postgres_database
-- postgres_host
-- postgres_port
+## Docker Compose Environment
+The docker compose environment is managed with an environment file. Copy the environment file from [the examples folder](/example/env). And fill in the values accordingly.
+
+### Environment Variable Explanation
+**OPENAI_API_KEY**: 
+
+**OPENAI_DALLE_MODEL**: 
+
+**OPENAI_DALLE_IMAGE_SIZE**: 
+
+**OPENAI_DALLE_IMAGE_QUALITY**: 
+
+**DISCORD_BOT_KEY**: 
+
+**DISCORD_IMAGE_CHANNEL**: 
+
+**OBJ_BUCKET**: 
+
+**AWS_ENDPOINT_URL**: 
+
+**AWS_ACCESS_KEY_ID**: 
+
+**AWS_SECRET_ACCESS_KEY**: 
+
+**PGDATABASE**: Database name for 
+
+**PGUSER**: 
+
+**PGPASSWORD**: 
+
+**PGHOST**: 
+
+**PGPORT**: 
 
 ## Postgres
 ### Schema
@@ -38,8 +54,3 @@ CREATE TABLE IF NOT EXISTS GeneratedImages (
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
 ```
-
-### Docker Environment Variables
-- postgres_username
-- postgres_password
-- postgres_database

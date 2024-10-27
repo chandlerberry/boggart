@@ -33,10 +33,6 @@ async def main():
     discord_logger.setLevel(logging.INFO)
     discord_logger.addHandler(stream_handler)
 
-    pg_username = os.getenv('POSTGRES_USERNAME')
-    pg_password = os.getenv('POSTGRES_PASSWORD')
-    pg_host = os.getenv('POSTGRES_HOST')
-
     async with asyncpg.create_pool(command_timeout=60) as pool:
         exts = ['ImageGenerator']
         intents = discord.Intents.default()

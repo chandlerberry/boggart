@@ -37,15 +37,7 @@ async def main():
     pg_password = os.getenv('POSTGRES_PASSWORD')
     pg_host = os.getenv('POSTGRES_HOST')
 
-    async with asyncpg.create_pool(
-        user=pg_username,
-        password=pg_password,
-        host=pg_host,
-        port=5432,
-        database='boggart',
-        command_timeout=60
-    ) as pool:
-
+    async with asyncpg.create_pool(command_timeout=60) as pool:
         exts = ['ImageGenerator']
         intents = discord.Intents.default()
         intents.message_content = True

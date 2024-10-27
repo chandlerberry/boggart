@@ -145,9 +145,16 @@ class ImageGenerator(commands.Cog):
             )
 
         except Exception as e:
-            await ctx.send(f'Error generating image: {e}')
+            match e['error']['code']:
+                case 'content_policy_violation':
+                    # insert ollama
+                    await ctx.send('Error Generating image: Content Policy Violation')
+                case _:
+                    await ctx.send(f'Error generating image: {e}')
+
             self.img_logger.error(f'Error generating image for {ctx.message.author.display_name}: {e}')
             return
+
         
         try:
             image = await self.__download_image(ctx, image_result.data[0].url)

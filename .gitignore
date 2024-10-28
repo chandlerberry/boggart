@@ -10,3 +10,5 @@ test*
 ansible.cfg
 inventory
 *vault.yaml
+
+.DS_Store

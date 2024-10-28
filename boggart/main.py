@@ -4,12 +4,11 @@ import logging
 import logging.handlers
 import os
 import sys
-from typing import List
 import discord
 from discord.ext import commands
 
 class Boggart(commands.Bot):
-    def __init__(self, *args, initial_extensions: List[str], db_pool: asyncpg.Pool, **kwargs,):
+    def __init__(self, *args, initial_extensions: list[str], db_pool: asyncpg.Pool, **kwargs,):
         super().__init__(*args, **kwargs)
         self.initial_extensions = initial_extensions
         self.db_pool = db_pool

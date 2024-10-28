@@ -6,18 +6,17 @@ import logging
 import os
 import sys
 import uuid
+
 from aiohttp import ClientSession
 from discord.ext import commands
 from openai import OpenAI
 from botocore.exceptions import NoCredentialsError
 
 class ImageGenerator(commands.Cog):
-    """
-    Discord.py Cog for generating images using OpenAI DALLE
-    """
+    """Discord.py Cog for generating images using OpenAI DALLE"""
+    
     def __init__(self, bot):
         self.bot = bot
-        self.get_secret = lambda secret_file: open(f"/run/secrets/{secret_file}", 'r').read()
         self.lock = asyncio.Lock()
 
         self.stream_handler = logging.StreamHandler(stream=sys.stdout)
@@ -25,29 +24,23 @@ class ImageGenerator(commands.Cog):
         self.formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', self.date_format, style='{')
         self.stream_handler.setFormatter(self.formatter)
 
-        self.img_logger = logging.getLogger('discordgpt.imagegenerator')
+        self.img_logger = logging.getLogger('boggart.imagegenerator')
         self.img_logger.setLevel(logging.INFO)
         self.img_logger.addHandler(self.stream_handler)
 
-        self.pg_logger = logging.getLogger('discordgpt.postgres')
+        self.pg_logger = logging.getLogger('boggart.postgres')
         self.pg_logger.setLevel(logging.INFO)
         self.pg_logger.addHandler(self.stream_handler)
-        
-        os.environ['AWS_ENDPOINT_URL'] = self.get_secret('backblaze_endpoint_url')
-        os.environ['AWS_ACCESS_KEY_ID'] = self.get_secret('backblaze_application_key_id')
-        os.environ['AWS_SECRET_ACCESS_KEY'] = self.get_secret('backblaze_application_key')
 
     async def __generate_image(self, **kwargs: str):
-        """
-        Generates an image result from the provided prompt using the OpenAI API `client.images.generate()`
-        """
+        """Generates an image result from the provided prompt using the OpenAI API `client.images.generate()`"""
         prompt = kwargs.get('prompt')
         image_size = kwargs.get('image_size')
         image_quality = kwargs.get('image_quality')
 
-        client = OpenAI(api_key=self.get_secret('openai_api_key'))
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         result = client.images.generate(
-            model=self.get_secret('openai_dalle_model'),
+            model=os.getenv('OPENAI_DALLE_MODEL'),
             prompt=prompt,
             n=1, size=image_size,
             quality=image_quality
@@ -74,55 +67,34 @@ class ImageGenerator(commands.Cog):
             image_data = await response.read()
             return io.BytesIO(image_data)
             
-    async def __send_image(
-            self,
-            ctx,
-            image_data: io.BytesIO,
-            filename: str,
-            caption: str
-        ):
-        """
-        Send Image to Discord chat
-        """
+    async def __send_image(self, ctx, image_data: io.BytesIO, filename: str, caption: str) -> None:
+        """Send Image to Discord chat"""
+
         self.img_logger.info(f'Sending image {filename} to Discord')
+
         async with self.lock:
             image_data.seek(0)
-            await ctx.send(
-                caption,
-                file=discord.File(fp=image_data, filename=filename)
-            )
+            await ctx.send(caption, file=discord.File(fp=image_data, filename=filename))
     
-    async def __upload_generated_image(
-            self,
-            image_data: io.BytesIO,
-            b2_filename: str,
-            bucket_name: str
-        ):
-        """
-        Upload generated image to object storage using the `boto3` package
-        """
-        self.img_logger.info(f'Uploading image {b2_filename} to Backblaze')
+    async def __upload_generated_image(self, image_data: io.BytesIO, obj_filename: str, bucket_name: str) -> None:
+        """Upload generated image to object storage using the `boto3` package"""
+
+        self.img_logger.info(f'Uploading image {obj_filename} to object storage')
+        
         async with self.lock:
             image_data.seek(0)
             try:
-                b2 = boto3.client('s3')
-                b2.put_object(Bucket=bucket_name, Key=b2_filename, Body=image_data)
+                minio = boto3.client('s3', verify=False)
+                minio.put_object(Bucket=bucket_name, Key=obj_filename, Body=image_data)
 
             except NoCredentialsError as e:
-                self.img_logger.error(f'Issue with Backblaze Credentials: {e}')
+                self.img_logger.error(f'Issue with object storage Credentials: {e}')
 
-    async def __store_generated_image(
-            self,
-            b2_filename: str,
-            b2_link: str,
-            username: str,
-            prompt: str,
-            caption: str
-        ):
-        """
-        Store a reference to the generated image in Postgres
-        """
-        self.pg_logger.info(f'Storing reference of image {b2_filename} that was generated by from {username}')
+    async def __store_generated_image(self, obj_filename: str, minio_link: str, username: str, prompt: str, caption: str):
+        """Store a reference to the generated image in Postgres"""
+
+        self.pg_logger.info(f'Storing reference of image {obj_filename} that was generated by from {username}')
+
         async with self.bot.db_pool.acquire() as conn, conn.transaction():
             username_from_db = await conn.fetchval('SELECT UserID FROM Users WHERE Username = $1', username)
 
@@ -130,8 +102,8 @@ class ImageGenerator(commands.Cog):
                 await conn.execute('''
                     INSERT INTO GeneratedImages (ImageLink, TimeCreated, UserID, Prompt, Caption)
                     VALUES ($1, CURRENT_TIMESTAMP AT TIME ZONE 'UTC', $2, $3, $4)
-                ''', b2_link, username_from_db, prompt, caption)
-                self.pg_logger.info(f'Stored reference of image {b2_filename} generated by {username}')
+                ''', minio_link, username_from_db, prompt, caption)
+                self.pg_logger.info(f'Stored reference of image {obj_filename} generated by {username}')
 
             elif not username_from_db:
                 await conn.execute('''
@@ -145,8 +117,8 @@ class ImageGenerator(commands.Cog):
                 await conn.execute('''
                     INSERT INTO GeneratedImages (ImageLink, TimeCreated, UserID, Prompt, Caption)
                     VALUES ($1, CURRENT_TIMESTAMP AT TIME ZONE 'UTC', $2, $3, $4)
-                ''', b2_link, username_from_db, prompt, caption)
-                self.pg_logger.info(f'Stored reference of image {b2_filename} generated by {username}')
+                ''', minio_link, username_from_db, prompt, caption)
+                self.pg_logger.info(f'Stored reference of image {obj_filename} generated by {username}')
 
             else:
                 self.pg_logger.error('Could not store reference of image in database')
@@ -154,30 +126,33 @@ class ImageGenerator(commands.Cog):
 
     @commands.command()
     async def img(self, ctx, *, prompt):
-        """
-        Chat command for a user to generate an image using DALLE 3 Standard.
-        """
-        if str(ctx.message.channel) != self.get_secret('discord_image_channel'):
+        """Chat command for a user to generate an image using DALLE 3 Standard."""
+
+        if str(ctx.message.channel) != os.getenv('DISCORD_IMAGE_CHANNEL'):
             return
         
         await ctx.send(f'Generating...')
         self.img_logger.info(f'Image request recieved from {ctx.message.author.display_name}')
         
         filename = f"{uuid.uuid4().hex}.png"
-        link = f"https://boggart.s3.us-east-005.backblazeb2.com/{filename}"
+        link = f"{os.getenv('AWS_ENDPOINT_URL')}{filename}"
 
         try:
             image_result = await self.__generate_image(
                 prompt=str(prompt),
-                image_size=self.get_secret('openai_dalle_image_size'),
-                image_quality=self.get_secret('openai_dalle_image_quality')
+                image_size=os.getenv('OPENAI_DALLE_IMAGE_SIZE'),
+                image_quality=os.getenv('OPENAI_DALLE_IMAGE_QUALITY')
             )
 
         except Exception as e:
-            await ctx.send(f'Error generating image: {e}')
+            if 'content_policy_violation' in str(e):
+                await ctx.send('Error Generating image: Content Policy Violation')
+            else:    
+                await ctx.send(f'Error generating image: {e}')
+
             self.img_logger.error(f'Error generating image for {ctx.message.author.display_name}: {e}')
             return
-        
+
         try:
             image = await self.__download_image(ctx, image_result.data[0].url)
 
@@ -198,20 +173,20 @@ class ImageGenerator(commands.Cog):
                     )
                 )
 
-                # upload to backblaze
+                # upload to object storage
                 tg.upload = asyncio.create_task(
                     self.__upload_generated_image( 
                         image_data=image,
-                        b2_filename=filename, 
-                        bucket_name=self.get_secret('backblaze_bucket_name')
+                        obj_filename=filename, 
+                        bucket_name=os.getenv('OBJ_BUCKET')
                     )
                 )
 
                 # store reference to file in database
                 tg.store = asyncio.create_task(
                     self.__store_generated_image(
-                        b2_filename=filename, 
-                        b2_link=link, 
+                        obj_filename=filename, 
+                        minio_link=link, 
                         username=ctx.message.author.display_name, 
                         prompt=prompt, 
                         caption=image_result.data[0].revised_prompt
@@ -224,7 +199,6 @@ class ImageGenerator(commands.Cog):
             return
 
 async def setup(bot):
-    """
-    Required to load the image generator cog when the service starts
-    """
+    """Required to load the image generator cog when the service starts"""
+
     await bot.add_cog(ImageGenerator(bot))

@@ -1,0 +1,69 @@
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - boggart-obj-store:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    networks:
+      - boggart-network
+    restart: always
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - "${PWD}/db:/docker-entrypoint-initdb.d/"
+      - boggart-postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - boggart-network
+    restart: always
+
+  boggart:
+    build:
+      context: "boggart"
+      dockerfile: Dockerfile
+      tags: 
+        - boggart:local
+    image: boggart:local
+    container_name: boggart
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_DALLE_MODEL: ${OPENAI_DALLE_MODEL}
+      OPENAI_DALLE_IMAGE_SIZE: ${OPENAI_DALLE_IMAGE_SIZE}
+      OPENAI_DALLE_IMAGE_QUALITY: ${OPENAI_DALLE_IMAGE_QUALITY}
+      DISCORD_BOT_KEY: ${DISCORD_BOT_KEY}
+      DISCORD_IMAGE_CHANNEL: ${DISCORD_IMAGE_CHANNEL}
+      OBJ_BUCKET: ${OBJ_BUCKET}
+      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      PGDATABASE: ${POSTGRES_DATABASE}
+      PGUSER: ${POSTGRES_USERNAME}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGHOST: ${POSTGRES_HOST}
+      PGPORT: ${POSTGRES_PORT}
+    networks:
+      - boggart-network
+    depends_on:
+      - postgres
+    restart: always
+
+networks:
+  boggart-network:
+
+volumes:
+  boggart-postgres:
+  boggart-obj-store:

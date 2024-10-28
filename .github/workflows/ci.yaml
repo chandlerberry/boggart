@@ -16,12 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - context: ./bot
-            dockerfile: ./bot/Dockerfile
+          - context: ./boggart
+            dockerfile: ./boggart/Dockerfile
             image: docker.io/chndlr/boggart
-          - context: ./database
-            dockerfile: ./database/Dockerfile
-            image: docker.io/chndlr/db-boggart
 
     steps:
       - name: Checkout

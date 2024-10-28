@@ -1,7 +1,14 @@
-__pycache__
-.env/
 .vscode/
+__pycache__
+
+.env/
+
+.venv/
+
 test*
-ansible/*vault.yaml
+
 ansible.cfg
 inventory
+*vault.yaml
+
+.DS_Store

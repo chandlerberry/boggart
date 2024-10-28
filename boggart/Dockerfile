@@ -16,6 +16,6 @@ COPY --from=builder /build/requirements.txt .
 
 RUN pip install --no-cache /wheels/*
 
-COPY src /bot/src
+COPY . /bot
 
-CMD ["python3", "/bot/src/boggart.py"]
+CMD ["python3", "/bot/main.py"]

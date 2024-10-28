@@ -13,6 +13,7 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     networks:
       - boggart-network
+    restart: always
 
   postgres:
     image: postgres:16
@@ -28,12 +29,15 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
       - boggart-network
+    restart: always
 
   boggart:
     build:
       context: "boggart"
       dockerfile: Dockerfile
-    image: chndlr/boggart:docker-migrate
+      tags: 
+        - boggart:local
+    image: boggart:local
     container_name: boggart
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
@@ -55,6 +59,7 @@ services:
       - boggart-network
     depends_on:
       - postgres
+    restart: always
 
 networks:
   boggart-network:

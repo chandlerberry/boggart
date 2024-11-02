@@ -1,4 +1,4 @@
-FROM docker.io/library/python:3.12-slim as builder
+FROM docker.io/library/python:3.12-slim AS builder
 
 WORKDIR /build
 

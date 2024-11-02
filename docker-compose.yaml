@@ -39,6 +39,8 @@ services:
         - boggart:local
     image: boggart:local
     container_name: boggart
+    volumes:
+      - ${PWD}/prompt_templates:/prompt_templates
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_DALLE_MODEL: ${OPENAI_DALLE_MODEL}
@@ -55,6 +57,8 @@ services:
       PGPASSWORD: ${POSTGRES_PASSWORD}
       PGHOST: ${POSTGRES_HOST}
       PGPORT: ${POSTGRES_PORT}
+      OLLAMA_ENDPOINT_URL: ${OLLAMA_ENDPOINT_URL}
+      OLLAMA_MODEL: ${OLLAMA_MODEL} 
     networks:
       - boggart-network
     depends_on:

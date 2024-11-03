@@ -4,3 +4,5 @@ jsonschema
 openai
 pyyaml
 asyncpg
+jinja2
+ollama

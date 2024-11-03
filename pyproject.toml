@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "boggart"
+version = "3.0.0"
+dynamic = ["dependencies"]
+requires-python = ">=3.11"
+authors = [{ name = "Chandler Berry", email = "chandler.r.berry@gmail.com" }]
+maintainers = [
+    { name = "Chandler Berry", email = "chandler.r.berry@gmail.com" },
+]
+description = ""
+readme = "README.md"
+keywords = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[tool.setuptools]
+packages = ["boggart"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["boggart/requirements.txt"] }
+
+[project.urls]
+Homepage = "https://github.com/chandlerberry/boggart"

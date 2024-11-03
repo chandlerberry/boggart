@@ -2,8 +2,8 @@
 __pycache__
 
 .env/
-
 .venv/
+*.egg-info
 
 test*
 
@@ -12,3 +12,5 @@ inventory
 *vault.yaml
 
 .DS_Store
+
+*dump*.sql

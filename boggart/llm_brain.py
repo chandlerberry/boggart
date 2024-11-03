@@ -1,10 +1,10 @@
 import os
 import yaml
 import ollama
-from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, Template
 
 def llm_response(prompt: str) -> str:
+    '''Calls out to self-hosted Ollama for chat request. Currently, the model is set via the OLLAMA_MODEL environment variable'''
     env = Environment(loader = FileSystemLoader('/prompt_templates'), trim_blocks=True, lstrip_blocks=True)
     template: Template = env.get_template('safety_system.yaml.j2')
     template_input: dict = {'user_prompt': prompt}

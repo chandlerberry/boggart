@@ -85,7 +85,7 @@ class ImageGenerator(commands.Cog):
         async with self.lock:
             image_data.seek(0)
             try:
-                minio = boto3.client('s3', verify=False)
+                minio = boto3.client('s3', verify=True)
                 minio.put_object(Bucket=bucket_name, Key=obj_filename, Body=image_data)
 
             except NoCredentialsError as e:
@@ -163,6 +163,7 @@ class ImageGenerator(commands.Cog):
             self.img_logger.error(f"Could not download image: {e}")
             return
 
+        # todo: this is dumb and should change, makes no sense
         try:
             async with asyncio.TaskGroup() as tg:
                 # send to discord chat

@@ -9,10 +9,7 @@ def llm_response(prompt: str) -> str:
     template: Template = env.get_template('safety_system.yaml.j2')
     template_input: dict = {'user_prompt': prompt}
 
-    client = ollama.Client(
-        host=os.getenv('OLLAMA_ENDPOINT_URL'),
-        verify=False
-    )
+    client = ollama.Client(host=os.getenv('OLLAMA_ENDPOINT_URL'))
 
     chat = client.chat(
         model=os.getenv('OLLAMA_MODEL'),

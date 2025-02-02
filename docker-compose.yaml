@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16
-    container_name: postgres
+    container_name: boggart-postgres
     ports:
       - "5432:5432"
     volumes:
@@ -25,6 +25,7 @@ services:
     container_name: boggart
     volumes:
       - ${PWD}/prompt_templates:/prompt_templates
+      - "${BOGGART_IMAGES_PATH}:/images"
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_DALLE_MODEL: ${OPENAI_DALLE_MODEL}

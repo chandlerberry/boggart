@@ -24,7 +24,7 @@ class GeneratedImage(BaseModel):
 class ImageGenerator(commands.Cog):
     """Discord.py Cog for generating images using OpenAI DALLE"""
 
-    async def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
 
         self.stream_handler = logging.StreamHandler(stream=sys.stdout)
@@ -97,7 +97,7 @@ class ImageGenerator(commands.Cog):
 
         lock = asyncio.Lock()
         async with lock:
-            image_data.seek(0)
+            image_bytes.seek(0)
             await ctx.send(
                 image_data.revised_prompt,
                 file=discord.File(
@@ -210,7 +210,7 @@ class ImageGenerator(commands.Cog):
             return
 
         # send to discord chat and save to db
-        with asyncio.TaskGroup as tg:
+        async with asyncio.TaskGroup() as tg:
             tg.send = asyncio.create_task(self._send_image(ctx, image_data))
             tg.save = asyncio.create_task(self._save_image(ctx, image_data))
 

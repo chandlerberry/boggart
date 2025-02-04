@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16
-    container_name: postgres
+    container_name: boggart-postgres
     ports:
       - "5432:5432"
     volumes:
@@ -25,17 +25,14 @@ services:
     container_name: boggart
     volumes:
       - ${PWD}/prompt_templates:/prompt_templates
+      - "${BOGGART_IMAGES_PATH}:/images"
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_DALLE_MODEL: ${OPENAI_DALLE_MODEL}
       OPENAI_DALLE_IMAGE_SIZE: ${OPENAI_DALLE_IMAGE_SIZE}
       OPENAI_DALLE_IMAGE_QUALITY: ${OPENAI_DALLE_IMAGE_QUALITY}
       DISCORD_BOT_KEY: ${DISCORD_BOT_KEY}
-      DISCORD_IMAGE_CHANNEL: ${DISCORD_IMAGE_CHANNEL}
-      OBJ_BUCKET: ${OBJ_BUCKET}
-      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      DISCORD_IMAGE_CHANNEL: ${DISCORD_IMAGE_CHANNEL} 
       PGDATABASE: ${POSTGRES_DATABASE}
       PGUSER: ${POSTGRES_USERNAME}
       PGPASSWORD: ${POSTGRES_PASSWORD}
@@ -54,4 +51,3 @@ networks:
 
 volumes:
   boggart-postgres:
-  boggart-obj-store:

@@ -12,6 +12,6 @@ sql:
       - out: "boggart"
         plugin: py
         options:
-          package: boggart_nlp
+          package: boggart
           emit_pydantic_models: true
           emit_async_querier: true

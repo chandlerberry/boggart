@@ -1,0 +1,14 @@
+__pycache__
+Dockerfile
+.github/
+.venv/
+.vscode/
+*.egg-info
+db/
+scripts/
+.env*
+.gitignore
+docker-compose.yml
+sqlc.yml
+sqlc/
+test*

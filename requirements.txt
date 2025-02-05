@@ -1,8 +1,9 @@
-boto3
 discord.py
-jsonschema
-openai
-pyyaml
 asyncpg
+pydantic
+sqlalchemy
+jsonschema
+pyyaml
 jinja2
+openai
 ollama

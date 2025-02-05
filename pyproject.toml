@@ -23,7 +23,7 @@ classifiers = [
 packages = ["boggart"]
 
 [tool.setuptools.dynamic]
-dependencies = { file = ["boggart/requirements.txt"] }
+dependencies = { file = ["requirements.txt"] }
 
 [project.urls]
 Homepage = "https://github.com/chandlerberry/boggart"

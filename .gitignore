@@ -1,7 +1,7 @@
 .vscode/
 __pycache__
 
-.env/
+.env*
 .venv/
 *.egg-info
 
@@ -14,3 +14,5 @@ inventory
 .DS_Store
 
 *dump*.sql
+
+db/

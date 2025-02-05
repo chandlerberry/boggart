@@ -137,7 +137,7 @@ class ImageGenerator(commands.Cog):
                     """
                     INSERT INTO GeneratedImages (ImageLink, TimeCreated, UserID, Prompt, Caption)
                     VALUES ($1, CURRENT_TIMESTAMP AT TIME ZONE 'UTC', $2, $3, $4)
-                """,
+                    """,
                     image_data.filename,
                     username_from_db,
                     image_data.user_prompt,
